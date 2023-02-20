@@ -261,6 +261,22 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
 
               actions: [
+                Container(
+                  margin: EdgeInsets.only(right: 20),
+                  child: IconButton(
+                    color: lightPrimaryColor,
+                    icon: const Icon(
+                      CupertinoIcons.refresh_thick,
+                      size: 20,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        loading = true;
+                      });
+                      _refresh();
+                    },
+                  ),
+                ),
                 Center(
                   child: Text(
                     user!.get('email'),
