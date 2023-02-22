@@ -11,6 +11,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:jazzicon/jazzicon.dart';
 import 'package:ozodbusiness/Screens/WalletScreen/create_wallet_screen.dart';
 import 'package:ozodbusiness/Screens/WalletScreen/import_wallet_screen.dart';
+import 'package:ozodbusiness/Screens/WalletScreen/send_ozod_screen.dart';
 import 'package:ozodbusiness/Services/auth_service.dart';
 import 'package:ozodbusiness/Services/encryption_service.dart';
 import 'package:ozodbusiness/Services/notification_service.dart';
@@ -18,6 +19,7 @@ import 'package:ozodbusiness/Widgets/loading_screen.dart';
 import 'package:ozodbusiness/Widgets/rounded_button.dart';
 import 'package:ozodbusiness/Widgets/slide_right_route_animation.dart';
 import 'package:ozodbusiness/constants.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:http/http.dart';
@@ -49,7 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   String publicKey = 'Loading';
   String privateKey = 'Loading';
-  String selectedWalletIndex = "1";
+  int selectedWalletIndex = 0;
   String selectedWalletName = "Wallet1";
   String importingAssetContractAddress = "";
   String importingAssetContractSymbol = "";
@@ -102,12 +104,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> getDataFromSP() async {
     sharedPreferences = await SharedPreferences.getInstance();
+    String? valueSelectedWalletIndex =
+        await sharedPreferences!.getString("selectedWalletIndex");
     String? valueselectedNetworkId =
         await sharedPreferences!.getString("selectedNetworkId");
     String? valueselectedNetworkName =
         await sharedPreferences!.getString("selectedNetworkName");
+
     if (mounted) {
       setState(() {
+        if (valueSelectedWalletIndex != null) {
+          selectedWalletIndex = int.parse(valueSelectedWalletIndex);
+        }
         if (valueselectedNetworkId != null) {
           selectedNetworkId = valueselectedNetworkId;
         }
@@ -116,6 +124,9 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       });
     } else {
+      if (valueSelectedWalletIndex != null) {
+        selectedWalletIndex = int.parse(valueSelectedWalletIndex);
+      }
       if (valueselectedNetworkId != null) {
         selectedNetworkId = valueselectedNetworkId;
       }
@@ -137,12 +148,13 @@ class _HomeScreenState extends State<HomeScreen> {
         .get();
     company = companies.docs[0];
     if (company!.get('wallets') != null && company!.get('wallets').isNotEmpty) {
+      await getDataFromSP();
       wallet = await FirebaseFirestore.instance
           .collection('wallets_business')
-          .doc(company!.get('wallets')[0]['publicKey'])
+          .doc(company!.get('wallets')[selectedWalletIndex]['publicKey'])
           .get();
       wallets = company!.get('wallets');
-      await getDataFromSP();
+      print("FRERGEREFR4");
       // App data
       appDataNodes = await FirebaseFirestore.instance
           .collection('wallet_app_data')
@@ -262,7 +274,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
               actions: [
                 Container(
-                  margin: EdgeInsets.only(right: 20),
+                  margin: const EdgeInsets.only(right: 20),
                   child: IconButton(
                     color: lightPrimaryColor,
                     icon: const Icon(
@@ -452,7 +464,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                               textStyle: const TextStyle(
                                                 color: lightPrimaryColor,
                                                 fontSize: 17,
-                                                fontWeight: FontWeight.w400,
+                                                fontWeight: FontWeight.w700,
                                               ),
                                             ),
                                           ),
@@ -868,159 +880,474 @@ class _HomeScreenState extends State<HomeScreen> {
                               SizedBox(
                                 height: size.height * 0.05,
                               ),
-                              Text(
-                                'Home',
-                                overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.montserrat(
-                                  textStyle: const TextStyle(
-                                    color: lightPrimaryColor,
-                                    fontSize: 75,
-                                    fontWeight: FontWeight.w400,
-                                  ),
-                                ),
-                              ),
 
-                              const SizedBox(height: 20),
-                              // Blockchain network
-                              if (wallets.isNotEmpty)
-                                Container(
-                                  constraints: const BoxConstraints(
-                                      maxWidth: kIsWeb ? 400 : double.infinity),
-                                  child: DropdownButtonHideUnderline(
-                                    child: DropdownButtonFormField<String>(
-                                      decoration: InputDecoration(
-                                        errorBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(40.0),
-                                          borderSide: const BorderSide(
-                                              color: Colors.red, width: 1.0),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(40.0),
-                                          borderSide: const BorderSide(
+                              // Intro + Alerts + Networks
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Container(
+                                    constraints: BoxConstraints(
+                                        maxWidth: size.width * 0.2),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Home',
+                                          overflow: TextOverflow.ellipsis,
+                                          style: GoogleFonts.montserrat(
+                                            textStyle: const TextStyle(
                                               color: lightPrimaryColor,
-                                              width: 1.0),
-                                        ),
-                                        enabledBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(40.0),
-                                          borderSide: const BorderSide(
-                                              color: lightPrimaryColor,
-                                              width: 1.0),
-                                        ),
-                                        hintStyle: TextStyle(
-                                            color: darkPrimaryColor
-                                                .withOpacity(0.7)),
-                                        hintText: 'Network',
-                                        border: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(40.0),
-                                          borderSide: const BorderSide(
-                                              color: lightPrimaryColor,
-                                              width: 1.0),
-                                        ),
-                                      ),
-                                      isDense: true,
-                                      menuMaxHeight: 200,
-                                      borderRadius: BorderRadius.circular(40.0),
-                                      dropdownColor: darkPrimaryColor,
-                                      // focusColor: whiteColor,
-                                      iconEnabledColor: lightPrimaryColor,
-                                      alignment: Alignment.centerLeft,
-                                      onChanged: (networkId) async {
-                                        setState(() {
-                                          loading = true;
-                                        });
-                                        await sharedPreferences!.setString(
-                                            "selectedNetworkId",
-                                            appData!
-                                                .get('AVAILABLE_OZOD_NETWORKS')[
-                                                    networkId]['id']
-                                                .toString());
-                                        await sharedPreferences!.setString(
-                                            "selectedNetworkName",
-                                            appData!
-                                                .get('AVAILABLE_OZOD_NETWORKS')[
-                                                    networkId]['name']
-                                                .toString());
-                                        setState(() {
-                                          selectedNetworkId = appData!.get(
-                                                  'AVAILABLE_OZOD_NETWORKS')[
-                                              networkId]['id'];
-                                          selectedNetworkName = appData!.get(
-                                                  'AVAILABLE_OZOD_NETWORKS')[
-                                              networkId]['name'];
-                                        });
-                                        _refresh();
-                                      },
-                                      hint: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceEvenly,
-                                        children: [
-                                          // Image.network(
-                                          //   appData!.get(
-                                          //           'AVAILABLE_OZOD_NETWORKS')[
-                                          //       selectedNetworkId]['image'],
-                                          //   width: 30,
-                                          // ),
-                                          const SizedBox(
-                                            width: 5,
+                                              fontSize: 75,
+                                              fontWeight: FontWeight.w700,
+                                            ),
                                           ),
+                                        ),
+
+                                        const SizedBox(height: 20),
+                                        // Blockchain network
+                                        if (wallets.isNotEmpty)
                                           Container(
-                                            // width: size.width * 0.6 - 20,
-                                            child: Text(
-                                              selectedNetworkName,
-                                              overflow: TextOverflow.ellipsis,
-                                              textAlign: TextAlign.center,
-                                              style: GoogleFonts.montserrat(
-                                                textStyle: const TextStyle(
-                                                  color: lightPrimaryColor,
-                                                  fontSize: 15,
-                                                  fontWeight: FontWeight.w700,
+                                            constraints: const BoxConstraints(
+                                                maxWidth: kIsWeb
+                                                    ? 400
+                                                    : double.infinity),
+                                            child: DropdownButtonHideUnderline(
+                                              child: DropdownButtonFormField<
+                                                  String>(
+                                                decoration: InputDecoration(
+                                                  errorBorder:
+                                                      OutlineInputBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            40.0),
+                                                    borderSide:
+                                                        const BorderSide(
+                                                            color: Colors.red,
+                                                            width: 1.0),
+                                                  ),
+                                                  focusedBorder:
+                                                      OutlineInputBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            40.0),
+                                                    borderSide: const BorderSide(
+                                                        color:
+                                                            lightPrimaryColor,
+                                                        width: 1.0),
+                                                  ),
+                                                  enabledBorder:
+                                                      OutlineInputBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            40.0),
+                                                    borderSide: const BorderSide(
+                                                        color:
+                                                            lightPrimaryColor,
+                                                        width: 1.0),
+                                                  ),
+                                                  hintStyle: TextStyle(
+                                                      color: darkPrimaryColor
+                                                          .withOpacity(0.7)),
+                                                  hintText: 'Network',
+                                                  border: OutlineInputBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            40.0),
+                                                    borderSide: const BorderSide(
+                                                        color:
+                                                            lightPrimaryColor,
+                                                        width: 1.0),
+                                                  ),
                                                 ),
+                                                isDense: true,
+                                                menuMaxHeight: 200,
+                                                borderRadius:
+                                                    BorderRadius.circular(40.0),
+                                                dropdownColor: darkPrimaryColor,
+                                                // focusColor: whiteColor,
+                                                iconEnabledColor:
+                                                    lightPrimaryColor,
+                                                alignment: Alignment.centerLeft,
+                                                onChanged: (networkId) async {
+                                                  setState(() {
+                                                    loading = true;
+                                                  });
+                                                  await sharedPreferences!
+                                                      .setString(
+                                                          "selectedNetworkId",
+                                                          appData!
+                                                              .get('AVAILABLE_OZOD_NETWORKS')[
+                                                                  networkId]
+                                                                  ['id']
+                                                              .toString());
+                                                  await sharedPreferences!
+                                                      .setString(
+                                                          "selectedNetworkName",
+                                                          appData!
+                                                              .get('AVAILABLE_OZOD_NETWORKS')[
+                                                                  networkId]
+                                                                  ['name']
+                                                              .toString());
+                                                  setState(() {
+                                                    selectedNetworkId = appData!
+                                                            .get(
+                                                                'AVAILABLE_OZOD_NETWORKS')[
+                                                        networkId]['id'];
+                                                    selectedNetworkName =
+                                                        appData!.get(
+                                                                'AVAILABLE_OZOD_NETWORKS')[
+                                                            networkId]['name'];
+                                                  });
+                                                  _refresh();
+                                                },
+                                                hint: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceEvenly,
+                                                  children: [
+                                                    Image.network(
+                                                      appData!.get(
+                                                                  'AVAILABLE_OZOD_NETWORKS')[
+                                                              selectedNetworkId]
+                                                          ['image'],
+                                                      width: 30,
+                                                    ),
+                                                    const SizedBox(
+                                                      width: 5,
+                                                    ),
+                                                    Container(
+                                                      // width: size.width * 0.6 - 20,
+                                                      child: Text(
+                                                        selectedNetworkName,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                        textAlign:
+                                                            TextAlign.center,
+                                                        style: GoogleFonts
+                                                            .montserrat(
+                                                          textStyle:
+                                                              const TextStyle(
+                                                            color:
+                                                                lightPrimaryColor,
+                                                            fontSize: 15,
+                                                            fontWeight:
+                                                                FontWeight.w700,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                items: [
+                                                  for (String networkId in appData!
+                                                      .get(
+                                                          'AVAILABLE_OZOD_NETWORKS')
+                                                      .keys)
+                                                    DropdownMenuItem<String>(
+                                                      value: networkId,
+                                                      child: Container(
+                                                        margin: const EdgeInsets
+                                                                .symmetric(
+                                                            vertical: 10),
+                                                        child: Row(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            Image.network(
+                                                              appData!.get(
+                                                                          'AVAILABLE_OZOD_NETWORKS')[
+                                                                      networkId]
+                                                                  ['image'],
+                                                              width: 30,
+                                                            ),
+                                                            const SizedBox(
+                                                              width: 5,
+                                                            ),
+                                                            // Image + symbol
+                                                            Text(
+                                                              appData!.get(
+                                                                          'AVAILABLE_OZOD_NETWORKS')[
+                                                                      networkId]
+                                                                  ['name'],
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
+                                                              maxLines: 2,
+                                                              style: GoogleFonts
+                                                                  .montserrat(
+                                                                textStyle:
+                                                                    const TextStyle(
+                                                                  color:
+                                                                      lightPrimaryColor,
+                                                                  fontSize: 20,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w700,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                ],
                                               ),
                                             ),
                                           ),
-                                        ],
-                                      ),
-                                      items: [
-                                        for (String networkId in appData!
-                                            .get('AVAILABLE_OZOD_NETWORKS')
-                                            .keys)
-                                          DropdownMenuItem<String>(
-                                            value: networkId,
-                                            child: Container(
-                                              margin:
-                                                  const EdgeInsets.symmetric(
-                                                      vertical: 10),
+                                        const SizedBox(height: 20),
+
+                                        // Alerts
+                                        if (wallets.isNotEmpty)
+                                          if (appData!.get(
+                                                  'AVAILABLE_ETHER_NETWORKS')[
+                                              selectedNetworkId]['is_testnet'])
+                                            Container(
+                                              constraints: const BoxConstraints(
+                                                  maxWidth: kIsWeb
+                                                      ? 400
+                                                      : double.infinity),
+                                              decoration: BoxDecoration(
+                                                border: Border.all(
+                                                    color: Colors.red,
+                                                    width: 1.0),
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
+                                              ),
+                                              padding: const EdgeInsets.all(15),
                                               child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.start,
                                                 children: [
-                                                  Image.network(
-                                                    appData!.get(
-                                                            'AVAILABLE_OZOD_NETWORKS')[
-                                                        networkId]['image'],
-                                                    width: 30,
+                                                  const Icon(
+                                                    CupertinoIcons
+                                                        .exclamationmark_circle,
+                                                    color: Colors.red,
                                                   ),
                                                   const SizedBox(
                                                     width: 5,
                                                   ),
-                                                  // Image + symbol
+                                                  Expanded(
+                                                    child: Text(
+                                                      "This is a test blockchain network. Assets in this chain do not have real value",
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      maxLines: 5,
+                                                      textAlign:
+                                                          TextAlign.start,
+                                                      style: GoogleFonts
+                                                          .montserrat(
+                                                        textStyle:
+                                                            const TextStyle(
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                          color: Colors.red,
+                                                          fontSize: 15,
+                                                          fontWeight:
+                                                              FontWeight.w300,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                        if (wallets.isNotEmpty)
+                                          if (gasTxsLeft < 0)
+                                            Container(
+                                              constraints: const BoxConstraints(
+                                                  maxWidth: kIsWeb
+                                                      ? 400
+                                                      : double.infinity),
+                                              decoration: BoxDecoration(
+                                                border: Border.all(
+                                                    color: Colors.red,
+                                                    width: 1.0),
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
+                                              ),
+                                              padding: const EdgeInsets.all(15),
+                                              child: Row(
+                                                children: [
+                                                  const Icon(
+                                                    CupertinoIcons
+                                                        .exclamationmark_circle,
+                                                    color: Colors.red,
+                                                  ),
+                                                  const SizedBox(
+                                                    width: 5,
+                                                  ),
+                                                  Expanded(
+                                                    child: Text(
+                                                      "You ran out of gas. Buy more coins",
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      maxLines: 5,
+                                                      textAlign:
+                                                          TextAlign.start,
+                                                      style: GoogleFonts
+                                                          .montserrat(
+                                                        textStyle:
+                                                            const TextStyle(
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                          color:
+                                                              lightPrimaryColor,
+                                                          fontSize: 15,
+                                                          fontWeight:
+                                                              FontWeight.w300,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                      ],
+                                    ),
+                                  ),
+                                  Container(
+                                    width: size.width * 0.7,
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.end,
+                                          children: [
+                                            Text(
+                                              company!.get('name'),
+                                              overflow: TextOverflow.ellipsis,
+                                              maxLines: 3,
+                                              style: GoogleFonts.montserrat(
+                                                textStyle: const TextStyle(
+                                                  color: lightPrimaryColor,
+                                                  fontSize: 45,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(
+                                              width: 30,
+                                            ),
+                                            Container(
+                                              height: 100,
+                                              width: 100,
+                                              padding: const EdgeInsets.all(5),
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(20.0),
+                                                color: lightPrimaryColor,
+                                              ),
+                                              child: Image.network(
+                                                company!.get('logo'),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(
+                                          height: 70,
+                                        ),
+                                        // Buttons
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceEvenly,
+                                          children: [
+                                            // Invoice button
+                                            RawMaterialButton(
+                                              constraints: const BoxConstraints(
+                                                  minWidth: 150,
+                                                  minHeight: 100),
+                                              fillColor: lightPrimaryColor,
+                                              shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          20)),
+                                              onPressed: () {},
+                                              child: Column(
+                                                children: [
+                                                  const Icon(
+                                                    CupertinoIcons.arrow_down,
+                                                    color: darkPrimaryColor,
+                                                  ),
                                                   Text(
-                                                    appData!.get(
-                                                            'AVAILABLE_OZOD_NETWORKS')[
-                                                        networkId]['name'],
+                                                    "Invoice",
                                                     overflow:
                                                         TextOverflow.ellipsis,
-                                                    maxLines: 2,
+                                                    textAlign: TextAlign.start,
                                                     style:
                                                         GoogleFonts.montserrat(
                                                       textStyle:
                                                           const TextStyle(
-                                                        color:
-                                                            lightPrimaryColor,
+                                                        color: darkPrimaryColor,
+                                                        fontSize: 20,
+                                                        fontWeight:
+                                                            FontWeight.w700,
+                                                      ),
+                                                    ),
+                                                  )
+                                                ],
+                                              ),
+                                            ),
+
+                                            // Send button
+                                            RawMaterialButton(
+                                              constraints: const BoxConstraints(
+                                                  minWidth: 150,
+                                                  minHeight: 100),
+                                              shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          20)),
+                                              fillColor: lightPrimaryColor,
+                                              onPressed: () async {
+                                                setState(() {
+                                                  loading = true;
+                                                });
+
+                                                Navigator.push(
+                                                  context,
+                                                  SlideRightRoute(
+                                                    page: SendOzodScreen(
+                                                      web3client: web3client!,
+                                                      wallet:
+                                                          wallet!,
+                                                      networkId:
+                                                          selectedNetworkId,
+                                                      coin: {
+                                                        'id': uzsoFirebase!.id,
+                                                        'contract': uzsoContract,
+                                                        'symbol': uzsoFirebase!
+                                                            .get('symbol'),
+                                                      },
+                                                    ),
+                                                  ),
+                                                );
+
+                                                setState(() {
+                                                  loading = false;
+                                                });
+                                              },
+                                              child: Column(
+                                                children: [
+                                                  const Icon(
+                                                    CupertinoIcons.arrow_up,
+                                                    color: darkPrimaryColor,
+                                                  ),
+                                                  Text(
+                                                    "Send",
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    textAlign: TextAlign.start,
+                                                    style:
+                                                        GoogleFonts.montserrat(
+                                                      textStyle:
+                                                          const TextStyle(
+                                                        color: darkPrimaryColor,
                                                         fontSize: 20,
                                                         fontWeight:
                                                             FontWeight.w700,
@@ -1030,192 +1357,840 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 ],
                                               ),
                                             ),
-                                          ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              const SizedBox(height: 20),
 
-                              // Alerts
-                              if (wallets.isNotEmpty)
-                                if (appData!.get('AVAILABLE_ETHER_NETWORKS')[
-                                    selectedNetworkId]['is_testnet'])
-                                  Container(
-                                    constraints: const BoxConstraints(
-                                        maxWidth:
-                                            kIsWeb ? 400 : double.infinity),
-                                    decoration: BoxDecoration(
-                                      border: Border.all(
-                                          color: Colors.red, width: 1.0),
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    padding: const EdgeInsets.all(15),
-                                    child: Row(
-                                      children: [
-                                        const Icon(
-                                          CupertinoIcons.exclamationmark_circle,
-                                          color: Colors.red,
-                                        ),
-                                        const SizedBox(
-                                          width: 5,
-                                        ),
-                                        Expanded(
-                                          child: Text(
-                                            "This is a test blockchain network. Assets in this chain do not have real value",
-                                            overflow: TextOverflow.ellipsis,
-                                            maxLines: 5,
-                                            textAlign: TextAlign.start,
-                                            style: GoogleFonts.montserrat(
-                                              textStyle: const TextStyle(
-                                                overflow: TextOverflow.ellipsis,
-                                                color: Colors.red,
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.w300,
+                                            // Buy button
+                                            RawMaterialButton(
+                                              constraints: const BoxConstraints(
+                                                  minWidth: 150,
+                                                  minHeight: 100),
+                                              fillColor: lightPrimaryColor,
+                                              shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          20)),
+                                              onPressed: () {
+                                                if (kIsWeb) {
+                                                  showNotification(
+                                                      'Coming soon',
+                                                      'Not supported for web',
+                                                      Colors.orange);
+                                                } else {
+                                                  showDialog(
+                                                      barrierDismissible: false,
+                                                      context: context,
+                                                      builder: (BuildContext
+                                                          context) {
+                                                        return StatefulBuilder(
+                                                          builder: (context,
+                                                              StateSetter
+                                                                  setState) {
+                                                            return AlertDialog(
+                                                              backgroundColor:
+                                                                  lightPrimaryColor,
+                                                              shape:
+                                                                  RoundedRectangleBorder(
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            20.0),
+                                                              ),
+                                                              title: const Text(
+                                                                'Method',
+                                                                style: TextStyle(
+                                                                    color:
+                                                                        darkPrimaryColor),
+                                                              ),
+                                                              content:
+                                                                  SingleChildScrollView(
+                                                                child:
+                                                                    Container(
+                                                                  margin:
+                                                                      const EdgeInsets
+                                                                          .all(10),
+                                                                  child: Column(
+                                                                    children: [
+                                                                      // PayMe
+                                                                      Row(
+                                                                        mainAxisAlignment:
+                                                                            MainAxisAlignment.spaceEvenly,
+                                                                        children: [
+                                                                          Image
+                                                                              .asset(
+                                                                            "assets/images/payme.png",
+                                                                            width:
+                                                                                80,
+                                                                          ),
+                                                                          const SizedBox(
+                                                                            width:
+                                                                                10,
+                                                                          ),
+                                                                          Expanded(
+                                                                            child:
+                                                                                RoundedButton(
+                                                                              pw: 250,
+                                                                              ph: 45,
+                                                                              text: 'PayMe',
+                                                                              press: () {
+                                                                                // Navigator.push(
+                                                                                //   context,
+                                                                                //   SlideRightRoute(
+                                                                                //     page: BuyOzodPaymeScreen(
+                                                                                //       walletIndex: selectedWalletIndex,
+                                                                                //       web3client: web3client!,
+                                                                                //     ),
+                                                                                //   ),
+                                                                                // );
+                                                                              },
+                                                                              color: secondaryColor,
+                                                                              textColor: darkPrimaryColor,
+                                                                            ),
+                                                                          ),
+                                                                        ],
+                                                                      ),
+                                                                      const SizedBox(
+                                                                        height:
+                                                                            20,
+                                                                      ),
+                                                                      // Octo
+                                                                      Row(
+                                                                        mainAxisAlignment:
+                                                                            MainAxisAlignment.spaceEvenly,
+                                                                        children: [
+                                                                          Image
+                                                                              .asset(
+                                                                            "assets/images/octo.png",
+                                                                            width:
+                                                                                80,
+                                                                          ),
+                                                                          const SizedBox(
+                                                                            width:
+                                                                                10,
+                                                                          ),
+                                                                          Expanded(
+                                                                            child:
+                                                                                RoundedButton(
+                                                                              pw: 250,
+                                                                              ph: 45,
+                                                                              text: 'Octo',
+                                                                              press: () {
+                                                                                // Navigator.push(
+                                                                                //   context,
+                                                                                //   SlideRightRoute(
+                                                                                //     page: BuyOzodOctoScreen(
+                                                                                //       walletIndex: selectedWalletIndex,
+                                                                                //       web3client: web3client!,
+                                                                                //       selectedNetworkId: selectedNetworkId,
+                                                                                //       contract: uzsoContract!,
+                                                                                //     ),
+                                                                                //   ),
+                                                                                // );
+                                                                              },
+                                                                              color: Colors.blue,
+                                                                              textColor: whiteColor,
+                                                                            ),
+                                                                          ),
+                                                                        ],
+                                                                      ),
+                                                                      const SizedBox(
+                                                                        height:
+                                                                            20,
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              actions: <Widget>[
+                                                                TextButton(
+                                                                  onPressed: () =>
+                                                                      Navigator.of(
+                                                                              context)
+                                                                          .pop(
+                                                                              false),
+                                                                  child:
+                                                                      const Text(
+                                                                    'Ok',
+                                                                    style: TextStyle(
+                                                                        color:
+                                                                            darkPrimaryColor),
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            );
+                                                          },
+                                                        );
+                                                      });
+                                                }
+                                              },
+                                              child: Column(
+                                                children: [
+                                                  const Icon(
+                                                    CupertinoIcons.money_dollar,
+                                                    color: darkPrimaryColor,
+                                                  ),
+                                                  Text(
+                                                    "Buy",
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    textAlign: TextAlign.start,
+                                                    style:
+                                                        GoogleFonts.montserrat(
+                                                      textStyle:
+                                                          const TextStyle(
+                                                        color: darkPrimaryColor,
+                                                        fontSize: 20,
+                                                        fontWeight:
+                                                            FontWeight.w700,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
                                             ),
-                                          ),
+
+                                            // Sell button
+                                            RawMaterialButton(
+                                              constraints: const BoxConstraints(
+                                                  minWidth: 150,
+                                                  minHeight: 100),
+                                              fillColor: lightPrimaryColor,
+                                              shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          20)),
+                                              onPressed: () {
+                                                //   showDialog(
+                                                //       barrierDismissible: false,
+                                                //       context: context,
+                                                //       builder:
+                                                //           (BuildContext context) {
+                                                //         return StatefulBuilder(
+                                                //           builder: (context,
+                                                //               StateSetter setState) {
+                                                //             return AlertDialog(
+                                                //               backgroundColor:
+                                                //                   lightPrimaryColor,
+                                                //               shape:
+                                                //                   RoundedRectangleBorder(
+                                                //                 borderRadius:
+                                                //                     BorderRadius
+                                                //                         .circular(
+                                                //                             20.0),
+                                                //               ),
+                                                //               title: const Text(
+                                                //                 'Method',
+                                                //                 style: TextStyle(
+                                                //                     color:
+                                                //                         darkPrimaryColor),
+                                                //               ),
+                                                //               content:
+                                                //                   SingleChildScrollView(
+                                                //                 child: Container(
+                                                //                   margin:
+                                                //                       EdgeInsets.all(
+                                                //                           10),
+                                                //                   child: Column(
+                                                //                     children: [
+                                                //                       // PayMe
+                                                //                       Row(
+                                                //                         mainAxisAlignment:
+                                                //                             MainAxisAlignment
+                                                //                                 .spaceEvenly,
+                                                //                         children: [
+                                                //                           Image.asset(
+                                                //                             "assets/images/payme.png",
+                                                //                             width: 80,
+                                                //                           ),
+                                                //                           SizedBox(
+                                                //                             width: 10,
+                                                //                           ),
+                                                //                           Expanded(
+                                                //                             child:
+                                                //                                 RoundedButton(
+                                                //                               pw: 250,
+                                                //                               ph: 45,
+                                                //                               text:
+                                                //                                   'PayMe',
+                                                //                               press:
+                                                //                                   () {
+                                                //                                 Navigator
+                                                //                                     .push(
+                                                //                                   context,
+                                                //                                   SlideRightRoute(
+                                                //                                     page: BuyOzodPaymeScreen(
+                                                //                                       walletIndex: selectedWalletIndex,
+                                                //                                       web3client: web3client,
+                                                //                                     ),
+                                                //                                   ),
+                                                //                                 );
+                                                //                               },
+                                                //                               color:
+                                                //                                   secondaryColor,
+                                                //                               textColor:
+                                                //                                   darkPrimaryColor,
+                                                //                             ),
+                                                //                           ),
+                                                //                         ],
+                                                //                       ),
+                                                //                       const SizedBox(
+                                                //                         height: 20,
+                                                //                       ),
+                                                //                       // Octo
+                                                //                       Row(
+                                                //                         mainAxisAlignment:
+                                                //                             MainAxisAlignment
+                                                //                                 .spaceEvenly,
+                                                //                         children: [
+                                                //                           Image.asset(
+                                                //                             "assets/images/octo.png",
+                                                //                             width: 80,
+                                                //                           ),
+                                                //                           SizedBox(
+                                                //                             width: 10,
+                                                //                           ),
+                                                //                           Expanded(
+                                                //                             child:
+                                                //                                 RoundedButton(
+                                                //                               pw: 250,
+                                                //                               ph: 45,
+                                                //                               text:
+                                                //                                   'Octo',
+                                                //                               press:
+                                                //                                   () {
+                                                //                                 Navigator
+                                                //                                     .push(
+                                                //                                   context,
+                                                //                                   SlideRightRoute(
+                                                //                                     page: BuyOzodOctoScreen(
+                                                //                                       walletIndex: selectedWalletIndex,
+                                                //                                       web3client: web3client,
+                                                //                                       selectedNetworkId: selectedNetworkId,
+                                                //                                       contract: uzsoContract!,
+                                                //                                     ),
+                                                //                                   ),
+                                                //                                 );
+                                                //                               },
+                                                //                               color: Colors
+                                                //                                   .blue,
+                                                //                               textColor:
+                                                //                                   whiteColor,
+                                                //                             ),
+                                                //                           ),
+                                                //                         ],
+                                                //                       ),
+                                                //                       const SizedBox(
+                                                //                         height: 20,
+                                                //                       ),
+                                                //                     ],
+                                                //                   ),
+                                                //                 ),
+                                                //               ),
+                                                //               actions: <Widget>[
+                                                //                 TextButton(
+                                                //                   onPressed: () =>
+                                                //                       Navigator.of(
+                                                //                               context)
+                                                //                           .pop(false),
+                                                //                   child: const Text(
+                                                //                     'Ok',
+                                                //                     style: TextStyle(
+                                                //                         color:
+                                                //                             darkPrimaryColor),
+                                                //                   ),
+                                                //                 ),
+                                                //               ],
+                                                //             );
+                                                //           },
+                                                //         );
+                                                //       });
+                                              },
+                                              child: Column(
+                                                children: [
+                                                  const Icon(
+                                                    CupertinoIcons
+                                                        .money_dollar_circle,
+                                                    color: darkPrimaryColor,
+                                                  ),
+                                                  Text(
+                                                    "Sell",
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    textAlign: TextAlign.start,
+                                                    style:
+                                                        GoogleFonts.montserrat(
+                                                      textStyle:
+                                                          const TextStyle(
+                                                        color: darkPrimaryColor,
+                                                        fontSize: 20,
+                                                        fontWeight:
+                                                            FontWeight.w700,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),
                                   ),
-                              if (wallets.isNotEmpty)
-                                if (gasTxsLeft < 0)
-                                  Container(
-                                    constraints: const BoxConstraints(
-                                        maxWidth:
-                                            kIsWeb ? 400 : double.infinity),
-                                    decoration: BoxDecoration(
-                                      border: Border.all(
-                                          color: Colors.red, width: 1.0),
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    padding: const EdgeInsets.all(15),
-                                    child: Row(
-                                      children: [
-                                        const Icon(
-                                          CupertinoIcons.exclamationmark_circle,
-                                          color: Colors.red,
-                                        ),
-                                        const SizedBox(
-                                          width: 5,
-                                        ),
-                                        Expanded(
-                                          child: Text(
-                                            "You ran out of gas. Buy more coins",
-                                            overflow: TextOverflow.ellipsis,
-                                            maxLines: 5,
-                                            textAlign: TextAlign.start,
-                                            style: GoogleFonts.montserrat(
-                                              textStyle: const TextStyle(
-                                                overflow: TextOverflow.ellipsis,
-                                                color: lightPrimaryColor,
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.w300,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                                ],
+                              ),
 
                               const SizedBox(
-                                height: 100,
+                                height: 25,
                               ),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  wallets.isEmpty
-                                      ? Container(
-                                          constraints: BoxConstraints(
-                                              maxWidth: size.width * 0.2),
-                                          child: Column(
+                              const Divider(
+                                height: 5,
+                                color: lightPrimaryColor,
+                              ),
+                              const SizedBox(
+                                height: 25,
+                              ),
+
+                              // Wallet + Txs
+                              IntrinsicHeight(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      constraints: BoxConstraints(
+                                          maxWidth: size.width * 0.2),
+                                      child: wallets.isEmpty
+                                          ? Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  'Looks like you do not have any wallets. You can create one, or import it.',
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  maxLines: 10,
+                                                  style: GoogleFonts.montserrat(
+                                                    textStyle: const TextStyle(
+                                                      color: lightPrimaryColor,
+                                                      fontSize: 20,
+                                                      fontWeight:
+                                                          FontWeight.w400,
+                                                    ),
+                                                  ),
+                                                ),
+                                                const SizedBox(
+                                                  height: 40,
+                                                ),
+                                                Center(
+                                                  child: RoundedButton(
+                                                    pw: 250,
+                                                    ph: 45,
+                                                    text: 'Create wallet',
+                                                    press: () {
+                                                      setState(() {
+                                                        loading = true;
+                                                      });
+                                                      Navigator.push(
+                                                        context,
+                                                        SlideRightRoute(
+                                                          page:
+                                                              CreateWalletScreen(
+                                                            isWelcomeScreen:
+                                                                false,
+                                                            companyId:
+                                                                company!.id,
+                                                          ),
+                                                        ),
+                                                      );
+                                                      setState(() {
+                                                        loading = false;
+                                                      });
+                                                    },
+                                                    color: lightPrimaryColor,
+                                                    textColor: darkPrimaryColor,
+                                                  ),
+                                                ),
+                                                const SizedBox(
+                                                  height: 20,
+                                                ),
+                                                Center(
+                                                  child: RoundedButton(
+                                                    pw: 250,
+                                                    ph: 45,
+                                                    text: 'Import wallet',
+                                                    press: () {
+                                                      setState(() {
+                                                        loading = true;
+                                                      });
+                                                      Navigator.push(
+                                                        context,
+                                                        SlideRightRoute(
+                                                          page:
+                                                              ImportWalletScreen(
+                                                            isWelcomeScreen:
+                                                                false,
+                                                            companyId:
+                                                                company!.id,
+                                                          ),
+                                                        ),
+                                                      );
+                                                      setState(() {
+                                                        loading = false;
+                                                      });
+                                                    },
+                                                    color: darkPrimaryColor,
+                                                    textColor:
+                                                        lightPrimaryColor,
+                                                  ),
+                                                ),
+                                              ],
+                                            )
+                                          : Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  'Wallet',
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: GoogleFonts.montserrat(
+                                                    textStyle: const TextStyle(
+                                                      color: lightPrimaryColor,
+                                                      fontSize: 60,
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                    ),
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 20),
+                                                DropdownButtonHideUnderline(
+                                                  child: DropdownButtonFormField<
+                                                          int>(
+                                                      decoration:
+                                                          InputDecoration(
+                                                        errorBorder:
+                                                            OutlineInputBorder(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                                      40.0),
+                                                          borderSide:
+                                                              const BorderSide(
+                                                                  color: Colors
+                                                                      .red,
+                                                                  width: 1.0),
+                                                        ),
+                                                        focusedBorder:
+                                                            OutlineInputBorder(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                                      40.0),
+                                                          borderSide:
+                                                              const BorderSide(
+                                                                  color:
+                                                                      lightPrimaryColor,
+                                                                  width: 1.0),
+                                                        ),
+                                                        enabledBorder:
+                                                            OutlineInputBorder(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                                      40.0),
+                                                          borderSide:
+                                                              const BorderSide(
+                                                                  color:
+                                                                      lightPrimaryColor,
+                                                                  width: 1.0),
+                                                        ),
+                                                        hintStyle: TextStyle(
+                                                            color:
+                                                                darkPrimaryColor
+                                                                    .withOpacity(
+                                                                        0.7)),
+                                                        hintText: 'Wallet',
+                                                        border:
+                                                            OutlineInputBorder(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                                      40.0),
+                                                          borderSide:
+                                                              const BorderSide(
+                                                                  color:
+                                                                      lightPrimaryColor,
+                                                                  width: 1.0),
+                                                        ),
+                                                      ),
+                                                      isDense: true,
+                                                      menuMaxHeight: 200,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              40.0),
+                                                      dropdownColor:
+                                                          darkPrimaryColor,
+                                                      // focusColor: whiteColor,
+                                                      iconEnabledColor:
+                                                          lightPrimaryColor,
+                                                      alignment:
+                                                          Alignment.centerLeft,
+                                                      onChanged:
+                                                          (walletIndex) async {
+                                                        await sharedPreferences!
+                                                            .setString(
+                                                                "selectedWalletIndex",
+                                                                walletIndex
+                                                                    .toString());
+                                                        setState(() {
+                                                          selectedWalletIndex =
+                                                              walletIndex!;
+                                                          loading = true;
+                                                        });
+                                                        _refresh();
+                                                      },
+                                                      hint: Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .spaceEvenly,
+                                                        children: [
+                                                          Jazzicon.getIconWidget(
+                                                              Jazzicon.getJazziconData(
+                                                                  160,
+                                                                  address:
+                                                                      publicKey),
+                                                              size: 20),
+                                                          const SizedBox(
+                                                            width: 5,
+                                                          ),
+                                                          Text(
+                                                            selectedWalletName,
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
+                                                            textAlign:
+                                                                TextAlign.start,
+                                                            style: GoogleFonts
+                                                                .montserrat(
+                                                              textStyle:
+                                                                  const TextStyle(
+                                                                color:
+                                                                    lightPrimaryColor,
+                                                                fontSize: 20,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w700,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      items: [
+                                                        for (Map wallet
+                                                            in wallets)
+                                                          DropdownMenuItem<int>(
+                                                            value:
+                                                                wallets.indexOf(
+                                                                    wallet),
+                                                            child: Row(
+                                                              children: [
+                                                                Jazzicon.getIconWidget(
+                                                                    Jazzicon.getJazziconData(
+                                                                        160,
+                                                                        address:
+                                                                            wallet['publicKey']),
+                                                                    size: 15),
+                                                                const SizedBox(
+                                                                  width: 10,
+                                                                ),
+                                                                Container(
+                                                                  width: 100,
+                                                                  child: Text(
+                                                                    wallet[
+                                                                        'name'],
+                                                                    overflow:
+                                                                        TextOverflow
+                                                                            .ellipsis,
+                                                                    style: GoogleFonts
+                                                                        .montserrat(
+                                                                      textStyle:
+                                                                          const TextStyle(
+                                                                        color:
+                                                                            lightPrimaryColor,
+                                                                        fontSize:
+                                                                            20,
+                                                                        fontWeight:
+                                                                            FontWeight.w700,
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                      ]),
+                                                ),
+                                                const SizedBox(
+                                                  height: 40,
+                                                ),
+                                                Text(
+                                                  "${selectedWalletBalance.getValueInUnit(selectedEtherUnit)} UZSO",
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  maxLines: 3,
+                                                  textAlign: TextAlign.start,
+                                                  style: GoogleFonts.montserrat(
+                                                    textStyle: const TextStyle(
+                                                      color: lightPrimaryColor,
+                                                      fontSize: 40,
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                    ),
+                                                  ),
+                                                ),
+                                                const SizedBox(
+                                                  height: 20,
+                                                ),
+                                                Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Expanded(
+                                                      child: Text(
+                                                        publicKey,
+                                                        maxLines: 2,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                        textAlign:
+                                                            TextAlign.start,
+                                                        style: GoogleFonts
+                                                            .montserrat(
+                                                          textStyle:
+                                                              const TextStyle(
+                                                            color:
+                                                                lightPrimaryColor,
+                                                            fontSize: 15,
+                                                            fontWeight:
+                                                                FontWeight.w400,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    Container(
+                                                      width: 30,
+                                                      child: IconButton(
+                                                        padding:
+                                                            EdgeInsets.zero,
+                                                        onPressed: () async {
+                                                          await Clipboard.setData(
+                                                              ClipboardData(
+                                                                  text:
+                                                                      publicKey));
+                                                          showNotification(
+                                                              'Copied',
+                                                              'Public key copied',
+                                                              greenColor);
+                                                        },
+                                                        icon: const Icon(
+                                                          CupertinoIcons.doc,
+                                                          color:
+                                                              lightPrimaryColor,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    Container(
+                                                      width: 30,
+                                                      child: IconButton(
+                                                        padding:
+                                                            EdgeInsets.zero,
+                                                        onPressed: () async {
+                                                          _scaffoldKey
+                                                              .currentState!
+                                                              .openDrawer();
+                                                        },
+                                                        icon: const Icon(
+                                                          CupertinoIcons
+                                                              .settings,
+                                                          color:
+                                                              lightPrimaryColor,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                const SizedBox(
+                                                  height: 40,
+                                                ),
+                                                Center(
+                                                  child: Container(
+                                                    width: 250,
+                                                    height: 250,
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            10),
+                                                    decoration: BoxDecoration(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              20.0),
+                                                      gradient:
+                                                          const LinearGradient(
+                                                        begin:
+                                                            Alignment.topLeft,
+                                                        end: Alignment
+                                                            .bottomRight,
+                                                        colors: [
+                                                          darkPrimaryColor,
+                                                          primaryColor
+                                                        ],
+                                                      ),
+                                                    ),
+                                                    child: QrImage(
+                                                      data: EthereumAddress
+                                                              .fromHex(
+                                                                  publicKey)
+                                                          .addressBytes
+                                                          .toString(),
+                                                      foregroundColor:
+                                                          lightPrimaryColor,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                    ),
+                                    const SizedBox(
+                                      width: 20,
+                                    ),
+                                    const VerticalDivider(
+                                      thickness: 3,
+                                      color: lightPrimaryColor,
+                                    ),
+                                    const SizedBox(
+                                      width: 20,
+                                    ),
+                                    wallets.isNotEmpty
+                                        ? Column(
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
                                             children: [
                                               Text(
-                                                'Looks like you do not have any wallets. You can create one, or import it.',
+                                                'Transactions',
                                                 overflow: TextOverflow.ellipsis,
-                                                maxLines: 10,
                                                 style: GoogleFonts.montserrat(
                                                   textStyle: const TextStyle(
                                                     color: lightPrimaryColor,
-                                                    fontSize: 20,
-                                                    fontWeight: FontWeight.w400,
+                                                    fontSize: 60,
+                                                    fontWeight: FontWeight.w500,
                                                   ),
                                                 ),
                                               ),
-                                              const SizedBox(
-                                                height: 40,
-                                              ),
-                                              Center(
-                                                child: RoundedButton(
-                                                  pw: 250,
-                                                  ph: 45,
-                                                  text: 'Create wallet',
-                                                  press: () {
-                                                    setState(() {
-                                                      loading = true;
-                                                    });
-                                                    Navigator.push(
-                                                      context,
-                                                      SlideRightRoute(
-                                                        page:
-                                                            CreateWalletScreen(
-                                                          isWelcomeScreen:
-                                                              false,
-                                                          companyId:
-                                                              company!.id,
-                                                        ),
-                                                      ),
-                                                    );
-                                                    setState(() {
-                                                      loading = false;
-                                                    });
-                                                  },
-                                                  color: lightPrimaryColor,
-                                                  textColor: darkPrimaryColor,
-                                                ),
-                                              ),
-                                              const SizedBox(
-                                                height: 20,
-                                              ),
-                                              Center(
-                                                child: RoundedButton(
-                                                  pw: 250,
-                                                  ph: 45,
-                                                  text: 'Import wallet',
-                                                  press: () {
-                                                    setState(() {
-                                                      loading = true;
-                                                    });
-                                                    Navigator.push(
-                                                      context,
-                                                      SlideRightRoute(
-                                                        page:
-                                                            ImportWalletScreen(
-                                                          isWelcomeScreen:
-                                                              false,
-                                                          companyId:
-                                                              company!.id,
-                                                        ),
-                                                      ),
-                                                    );
-                                                    setState(() {
-                                                      loading = false;
-                                                    });
-                                                  },
-                                                  color: darkPrimaryColor,
-                                                  textColor: lightPrimaryColor,
-                                                ),
-                                              ),
+                                              const SizedBox(height: 20),
                                             ],
-                                          ),
-                                        )
-                                      : Container(),
-                                ],
+                                          )
+                                        : Container(),
+                                  ],
+                                ),
                               )
                             ],
                           ),

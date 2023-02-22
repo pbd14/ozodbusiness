@@ -133,7 +133,7 @@ class _MainScreenState extends State<MainScreen> {
             items: _navBarsItems(),
             navBarHeight: 60,
             confineInSafeArea: true,
-            backgroundColor: darkPrimaryColor, // Default is Colors.white.
+            backgroundColor: Colors.transparent, // Default is Colors.white.
             handleAndroidBackButtonPress: true, // Default is true.
             resizeToAvoidBottomInset:
                 true, // This needs to be true if you want to move up the screen when keyboard appears. Default is true.
