@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+// ignore: depend_on_referenced_packages
 import 'package:intl/intl.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
@@ -53,7 +54,6 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
   Map selectedCoin = {'symbol': 'UZSO'};
   EtherAmount? balance;
   Client httpClient = Client();
-  firestore.DocumentSnapshot? walletFirebase;
   firestore.DocumentSnapshot? appData;
   firestore.DocumentSnapshot? appDataApi;
   TextEditingController textEditingController = TextEditingController();

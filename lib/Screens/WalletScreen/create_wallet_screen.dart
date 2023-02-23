@@ -352,6 +352,7 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
                             textColor: darkPrimaryColor,
                           ),
                         ),
+                        SizedBox(height: size.height * 0.1,),
                       ],
                     ),
                   ),

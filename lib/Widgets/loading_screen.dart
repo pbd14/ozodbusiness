@@ -22,11 +22,11 @@ class _LoadingScreenState extends State<LoadingScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SpinKitWave(
+                const SpinKitWave(
                   color: lightPrimaryColor,
                   size: 50.0,
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 10,
                 ),
                 if (widget.text != null)
