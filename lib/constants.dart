@@ -19,7 +19,11 @@ const lightDarkColor = Color.fromRGBO(105, 105, 105, 1.0);
 const darkDarkColor = Color.fromRGBO(13, 13, 13, 1.0);
 const greenColor = Color.fromARGB(255, 0, 171, 126);
 
-const Map<String, String> invoiceStatuses = {'0': 'Unpaid'};
+const Map<String, String> invoiceStatuses = {
+  '0': 'Unpaid',
+  '1': 'In Process',
+  '10': 'Paid'
+};
 
 const Map<int, String> months = {
   1: "January",

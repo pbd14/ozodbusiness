@@ -85,6 +85,7 @@ class _HomeScreenState extends State<HomeScreen> {
         loading = true;
       });
     }
+    
     showSeed = false;
     publicKey = 'Loading';
     privateKey = 'Loading';
@@ -2276,7 +2277,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                         // Status + Date
                                                         Container(
                                                           width:
-                                                              size.width * 0.1,
+                                                              size.width * 0.2,
                                                           child: Column(
                                                             mainAxisAlignment:
                                                                 MainAxisAlignment
@@ -2341,7 +2342,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                         ),
                                                         Container(
                                                           width:
-                                                              size.width * 0.3,
+                                                              size.width * 0.2,
                                                           child: Column(
                                                             mainAxisAlignment:
                                                                 MainAxisAlignment

@@ -52,14 +52,17 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
   final _formKey = GlobalKey<FormState>();
   EtherUnit selectedEtherUnit = EtherUnit.ether;
   Timer? timer;
+  TextEditingController textEditingController = TextEditingController();
 
   String? amount;
   String invoiceId = 'N/A';
   Map selectedCoin = {'symbol': 'UZSO'};
   Client httpClient = Client();
+
   firestore.DocumentSnapshot? appData;
   firestore.DocumentSnapshot? appDataApi;
-  TextEditingController textEditingController = TextEditingController();
+  firestore.DocumentSnapshot? invoice;
+  StreamSubscription<firestore.DocumentSnapshot>? invoiceStreamSubscriptions;
 
   EtherAmount? etherGas;
   BigInt? estimateGas;
@@ -95,6 +98,7 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
 
   @override
   void dispose() {
+    invoiceStreamSubscriptions!.cancel();
     timer?.cancel();
     super.dispose();
   }
@@ -287,10 +291,10 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                                           },
                                           keyboardType: TextInputType.number,
                                           onChanged: (val) {
-                                              setState(() {
-                                                loading1 = true;
-                                                amount = val;
-                                              });
+                                            setState(() {
+                                              loading1 = true;
+                                              amount = val;
+                                            });
                                           },
                                           decoration: InputDecoration(
                                               errorBorder:
@@ -378,8 +382,22 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                                           showNotification('Sucess',
                                               'Invoice created', Colors.green);
                                           invoiceId = id.toString();
-                                          setState(() {
-                                            loading1 = false;
+                                          invoiceStreamSubscriptions =
+                                              await firestore
+                                                  .FirebaseFirestore.instance
+                                                  .collection('invoices')
+                                                  .doc(invoiceId)
+                                                  .snapshots()
+                                                  .listen((invoiceEvent) {
+                                            if (mounted) {
+                                              setState(() {
+                                                invoice = invoiceEvent;
+                                                loading1 = false;
+                                              });
+                                            } else {
+                                              invoice = invoiceEvent;
+                                              loading1 = false;
+                                            }
                                           });
                                         } else {
                                           setState(() {
@@ -435,14 +453,30 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                                           height: 10,
                                         ),
                                         Text(
-                                          invoiceId,
+                                          "#${invoice!.id}",
                                           overflow: TextOverflow.ellipsis,
                                           maxLines: 3,
                                           textAlign: TextAlign.start,
                                           style: GoogleFonts.montserrat(
                                             textStyle: const TextStyle(
                                               color: lightPrimaryColor,
-                                              fontSize: 20,
+                                              fontSize: 40,
+                                              fontWeight: FontWeight.w400,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(
+                                          height: 10,
+                                        ),
+                                        Text(
+                                          "Status: ${invoiceStatuses[invoice!.get('status')]!}",
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 3,
+                                          textAlign: TextAlign.start,
+                                          style: GoogleFonts.montserrat(
+                                            textStyle: const TextStyle(
+                                              color: lightPrimaryColor,
+                                              fontSize: 40,
                                               fontWeight: FontWeight.w400,
                                             ),
                                           ),
@@ -457,7 +491,8 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                                             Image.network(
                                               appData!.get(
                                                       'AVAILABLE_ETHER_NETWORKS')[
-                                                  widget.networkId]['image'],
+                                                  invoice!.get(
+                                                      'networkId')]['image'],
                                               width: 20,
                                             ),
                                             const SizedBox(
@@ -467,7 +502,8 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                                               child: Text(
                                                 appData!.get(
                                                         'AVAILABLE_ETHER_NETWORKS')[
-                                                    widget.networkId]['name'],
+                                                    invoice!.get(
+                                                        'networkId')]['name'],
                                                 overflow: TextOverflow.ellipsis,
                                                 maxLines: 3,
                                                 textAlign: TextAlign.start,
@@ -487,28 +523,63 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                                           height: 30,
                                         ),
                                         Center(
-                                          child: Container(
-                                            width: 250,
-                                            height: 250,
-                                            padding: const EdgeInsets.all(10),
-                                            decoration: BoxDecoration(
-                                              borderRadius:
-                                                  BorderRadius.circular(20.0),
-                                              gradient: const LinearGradient(
-                                                begin: Alignment.topLeft,
-                                                end: Alignment.bottomRight,
-                                                colors: [
-                                                  darkPrimaryColor,
-                                                  primaryColor
-                                                ],
-                                              ),
-                                            ),
-                                            child: QrImage(
-                                              data: invoiceId,
-                                              foregroundColor:
-                                                  lightPrimaryColor,
-                                            ),
-                                          ),
+                                          child: invoice!.get('status') == '10'
+                                              ? Column(
+                                                  children: [
+                                                    const Icon(
+                                                      CupertinoIcons
+                                                          .checkmark_square_fill,
+                                                      color: lightPrimaryColor,
+                                                      size: 100,
+                                                    ),
+                                                    Text(
+                                                      invoiceStatuses[invoice!
+                                                          .get('status')]!,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      maxLines: 3,
+                                                      textAlign:
+                                                          TextAlign.start,
+                                                      style: GoogleFonts
+                                                          .montserrat(
+                                                        textStyle:
+                                                            const TextStyle(
+                                                          color:
+                                                              lightPrimaryColor,
+                                                          fontSize: 40,
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                )
+                                              : Container(
+                                                  width: 250,
+                                                  height: 250,
+                                                  padding:
+                                                      const EdgeInsets.all(10),
+                                                  decoration: BoxDecoration(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            20.0),
+                                                    gradient:
+                                                        const LinearGradient(
+                                                      begin: Alignment.topLeft,
+                                                      end:
+                                                          Alignment.bottomRight,
+                                                      colors: [
+                                                        darkPrimaryColor,
+                                                        primaryColor
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  child: QrImage(
+                                                    data: invoice!.id,
+                                                    foregroundColor:
+                                                        lightPrimaryColor,
+                                                  ),
+                                                ),
                                         ),
                                         const SizedBox(
                                           height: 30,
@@ -533,8 +604,9 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                                         ),
                                         Center(
                                           child: Text(
-                                            NumberFormat.compact()
-                                                .format(double.parse(amount!)),
+                                            NumberFormat.compact().format(
+                                                double.parse(
+                                                    invoice!.get('amount'))),
                                             overflow: TextOverflow.ellipsis,
                                             maxLines: 3,
                                             textAlign: TextAlign.center,
@@ -558,8 +630,8 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                                             children: [
                                               Jazzicon.getIconWidget(
                                                   Jazzicon.getJazziconData(160,
-                                                      address:
-                                                          widget.coin['id']),
+                                                      address: invoice!
+                                                          .get('coinId')),
                                                   size: 25),
                                               const SizedBox(
                                                 width: 10,
@@ -567,7 +639,7 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                                               Container(
                                                 width: 100,
                                                 child: Text(
-                                                  widget.coin['symbol'],
+                                                  invoice!.get('coinSymbol'),
                                                   overflow:
                                                       TextOverflow.ellipsis,
                                                   textAlign: TextAlign.start,
@@ -619,7 +691,7 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                                                   ),
                                                 ),
                                               ),
-                                              SizedBox(
+                                              const SizedBox(
                                                 height: 20,
                                               ),
                                               // Gas price

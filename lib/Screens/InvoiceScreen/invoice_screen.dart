@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -27,14 +29,24 @@ class InvoiceScreen extends StatefulWidget {
 class _InvoiceScreenState extends State<InvoiceScreen> {
   bool loading = true;
   firestore.DocumentSnapshot? invoice;
+  StreamSubscription<firestore.DocumentSnapshot>? invoiceStreamSubscriptions;
   EtherAmount? etherGas;
   BigInt? estimateGas;
 
   Future<void> prepare() async {
-    invoice = await firestore.FirebaseFirestore.instance
+    invoiceStreamSubscriptions = await firestore.FirebaseFirestore.instance
         .collection('invoices')
         .doc(widget.invoiceId)
-        .get();
+        .snapshots()
+        .listen((invoiceEvent) {
+      if (mounted) {
+        setState(() {
+          invoice = invoiceEvent;
+        });
+      } else {
+        invoice = invoiceEvent;
+      }
+    });
     etherGas = await widget.web3client.getGasPrice();
     estimateGas = await widget.web3client.estimateGas(
       to: EthereumAddress.fromHex(invoice!.get('to')),
@@ -48,6 +60,12 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
   void initState() {
     prepare();
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    invoiceStreamSubscriptions!.cancel();
+    super.dispose();
   }
 
   @override
@@ -112,6 +130,22 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                       const SizedBox(
                         height: 10,
                       ),
+                      Text(
+                        "Status: ${invoiceStatuses[invoice!.get('status')]!}",
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 3,
+                        textAlign: TextAlign.start,
+                        style: GoogleFonts.montserrat(
+                          textStyle: const TextStyle(
+                            color: lightPrimaryColor,
+                            fontSize: 40,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 10,
+                      ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -144,23 +178,46 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                         height: 30,
                       ),
                       Center(
-                        child: Container(
-                          width: 250,
-                          height: 250,
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20.0),
-                            gradient: const LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [darkPrimaryColor, primaryColor],
-                            ),
-                          ),
-                          child: QrImage(
-                            data: widget.invoiceId,
-                            foregroundColor: lightPrimaryColor,
-                          ),
-                        ),
+                        child: invoice!.get('status') == '10'
+                            ? Column(
+                                children: [
+                                  const Icon(
+                                    CupertinoIcons.checkmark_square_fill,
+                                    color: lightPrimaryColor,
+                                    size: 100,
+                                  ),
+                                  Text(
+                                    invoiceStatuses[invoice!.get('status')]!,
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 3,
+                                    textAlign: TextAlign.start,
+                                    style: GoogleFonts.montserrat(
+                                      textStyle: const TextStyle(
+                                        color: lightPrimaryColor,
+                                        fontSize: 40,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : Container(
+                                width: 250,
+                                height: 250,
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20.0),
+                                  gradient: const LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [darkPrimaryColor, primaryColor],
+                                  ),
+                                ),
+                                child: QrImage(
+                                  data: widget.invoiceId,
+                                  foregroundColor: lightPrimaryColor,
+                                ),
+                              ),
                       ),
                       const SizedBox(
                         height: 30,
@@ -262,7 +319,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                                 ),
                               ),
                             ),
-                            SizedBox(
+                            const SizedBox(
                               height: 20,
                             ),
                             // Gas price
