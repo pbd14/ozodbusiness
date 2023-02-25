@@ -34,6 +34,10 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
   BigInt? estimateGas;
 
   Future<void> prepare() async {
+    invoice = await firestore.FirebaseFirestore.instance
+        .collection('invoices')
+        .doc(widget.invoiceId)
+        .get();
     invoiceStreamSubscriptions = await firestore.FirebaseFirestore.instance
         .collection('invoices')
         .doc(widget.invoiceId)
@@ -371,7 +375,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                             const SizedBox(
                               height: 10,
                             ),
-                            // Estimate gas
+                            // Estimate gas amount
                             Container(
                               child: Row(
                                 mainAxisAlignment:
@@ -380,7 +384,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                                   Container(
                                     width: size.width * 0.2,
                                     child: Text(
-                                      "Estimate gas price for this transaction",
+                                      "Estimate gas amount",
                                       overflow: TextOverflow.ellipsis,
                                       maxLines: 5,
                                       textAlign: TextAlign.start,
@@ -400,7 +404,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                                   Container(
                                     width: size.width * 0.2,
                                     child: Text(
-                                      "${NumberFormat.compact().format(EtherAmount.fromUnitAndValue(EtherUnit.gwei, estimateGas).getValueInUnit(EtherUnit.gwei))} GWEI",
+                                      "$estimateGas",
                                       overflow: TextOverflow.ellipsis,
                                       maxLines: 3,
                                       textAlign: TextAlign.end,
@@ -459,7 +463,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                                 Container(
                                   width: size.width * 0.2,
                                   child: Text(
-                                    "Total",
+                                    "Total gas price",
                                     overflow: TextOverflow.ellipsis,
                                     maxLines: 3,
                                     textAlign: TextAlign.start,
@@ -479,7 +483,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                                 Container(
                                   width: size.width * 0.2,
                                   child: Text(
-                                    "${etherGas!.getValueInUnit(EtherUnit.gwei)} GWEI",
+                                    "${(etherGas!.getValueInUnit(EtherUnit.gwei) * estimateGas!.toDouble()).toStringAsFixed(1)} GWEI",
                                     overflow: TextOverflow.ellipsis,
                                     maxLines: 3,
                                     textAlign: TextAlign.end,

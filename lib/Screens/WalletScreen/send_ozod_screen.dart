@@ -271,7 +271,8 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                               child: TextFormField(
                                 controller: textEditingController,
                                 // initialValue: receiverPublicAddress,
-                                style: const TextStyle(color: lightPrimaryColor),
+                                style:
+                                    const TextStyle(color: lightPrimaryColor),
                                 validator: (val) {
                                   if (val!.isEmpty) {
                                     return 'Enter receiver';
@@ -459,8 +460,8 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                         ),
                         Container(
                           decoration: BoxDecoration(
-                            border:
-                                Border.all(color: lightPrimaryColor, width: 1.0),
+                            border: Border.all(
+                                color: lightPrimaryColor, width: 1.0),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           padding: const EdgeInsets.all(10),
@@ -598,8 +599,6 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                     await widget.web3client.estimateGas(
                                   sender: EthereumAddress.fromHex(
                                       widget.wallet.get('publicKey')),
-                                  to: EthereumAddress.fromHex(
-                                      receiverPublicAddress!),
                                 );
                                 setState(() {
                                   loading = false;
@@ -640,7 +639,8 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                           .montserrat(
                                                         textStyle:
                                                             const TextStyle(
-                                                          color: lightPrimaryColor,
+                                                          color:
+                                                              lightPrimaryColor,
                                                           fontSize: 25,
                                                           fontWeight:
                                                               FontWeight.w700,
@@ -665,7 +665,8 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                             const TextStyle(
                                                           overflow: TextOverflow
                                                               .ellipsis,
-                                                          color: lightPrimaryColor,
+                                                          color:
+                                                              lightPrimaryColor,
                                                           fontSize: 60,
                                                           fontWeight:
                                                               FontWeight.w700,
@@ -817,7 +818,7 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                           const SizedBox(
                                                             height: 10,
                                                           ),
-                                                          // Estimate gas
+                                                          // Estimate gas amount
                                                           Container(
                                                             child: Row(
                                                               mainAxisAlignment:
@@ -829,7 +830,7 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                                       size.width *
                                                                           0.2,
                                                                   child: Text(
-                                                                    "Estimate gas price for this transaction",
+                                                                    "Estimate gas amount",
                                                                     overflow:
                                                                         TextOverflow
                                                                             .ellipsis,
@@ -861,7 +862,7 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                                       size.width *
                                                                           0.2,
                                                                   child: Text(
-                                                                    "${NumberFormat.compact().format(EtherAmount.fromUnitAndValue(EtherUnit.gwei, estimateGas).getValueInUnit(EtherUnit.gwei))} GWEI",
+                                                                    "$estimateGas",
                                                                     overflow:
                                                                         TextOverflow
                                                                             .ellipsis,
@@ -949,7 +950,7 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                                     size.width *
                                                                         0.2,
                                                                 child: Text(
-                                                                  "Total",
+                                                                  "Total gas price",
                                                                   overflow:
                                                                       TextOverflow
                                                                           .ellipsis,
@@ -983,7 +984,7 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                                     size.width *
                                                                         0.2,
                                                                 child: Text(
-                                                                  "${etherGas.getValueInUnit(EtherUnit.gwei)} GWEI",
+                                                                  "${(etherGas.getValueInUnit(EtherUnit.gwei) * estimateGas.toDouble()).toStringAsFixed(1)} GWEI",
                                                                   overflow:
                                                                       TextOverflow
                                                                           .ellipsis,

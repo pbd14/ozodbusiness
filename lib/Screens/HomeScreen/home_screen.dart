@@ -72,9 +72,6 @@ class _HomeScreenState extends State<HomeScreen> {
   List selectedWalletAssets = [];
   Map selectedWalletAssetsData = {};
   List wallets = [];
-  EtherAmount? estimateGas;
-  EtherAmount? gasBalance;
-  double gasTxsLeft = 0;
 
   Client httpClient = Client();
   Web3Client? web3client;
@@ -85,7 +82,7 @@ class _HomeScreenState extends State<HomeScreen> {
         loading = true;
       });
     }
-    
+
     showSeed = false;
     publicKey = 'Loading';
     privateKey = 'Loading';
@@ -96,9 +93,6 @@ class _HomeScreenState extends State<HomeScreen> {
     selectedWalletAssets = [];
     selectedWalletAssetsData = {};
     wallets = [];
-    estimateGas = EtherAmount.zero();
-    gasBalance = EtherAmount.zero();
-    gasTxsLeft = 0;
     web3client = null;
     prepare();
     Completer<void> completer = Completer<void>();
@@ -151,12 +145,6 @@ class _HomeScreenState extends State<HomeScreen> {
         .limit(1)
         .get();
     company = companies.docs[0];
-    invoices = await FirebaseFirestore.instance
-        .collection('invoices')
-        .where('companyId', isEqualTo: company!.id)
-        .limit(10)
-        .orderBy('dateCreated', descending: true)
-        .get();
 
     if (company!.get('wallets') != null && company!.get('wallets').isNotEmpty) {
       await getDataFromSP();
@@ -165,6 +153,17 @@ class _HomeScreenState extends State<HomeScreen> {
           .doc(company!.get('wallets')[selectedWalletIndex]['publicKey'])
           .get();
       wallets = company!.get('wallets');
+
+      invoices = await FirebaseFirestore.instance
+          .collection('invoices')
+          .where('companyId', isEqualTo: company!.id)
+          .where('to', isEqualTo: wallet!.get('publicKey'))
+          .where('status', isNotEqualTo: '10')
+          .limit(10)
+          .orderBy('status')
+          .orderBy('dateCreated', descending: true)
+          .get();
+
       // App data
       appDataNodes = await FirebaseFirestore.instance
           .collection('wallet_app_data')
@@ -223,10 +222,6 @@ class _HomeScreenState extends State<HomeScreen> {
       EtherAmount valueBalance = EtherAmount.fromUnitAndValue(
           EtherUnit.wei, jsonBodyBalance['result']);
 
-      estimateGas = await web3client!.getGasPrice();
-      gasBalance = await web3client!
-          .getBalance(EthereumAddress.fromHex(wallet!.get('publicKey')));
-
       setState(() {
         wallet!.get('publicKey') != null
             ? publicKey = wallet!.get('publicKey')
@@ -240,9 +235,6 @@ class _HomeScreenState extends State<HomeScreen> {
         valueBalance != null
             ? selectedWalletBalance = valueBalance
             : selectedWalletBalance = EtherAmount.zero();
-        gasTxsLeft = (gasBalance!.getValueInUnit(EtherUnit.gwei) /
-                estimateGas!.getValueInUnit(EtherUnit.gwei))
-            .toDouble();
         loading = false;
       });
     } else {
@@ -1153,57 +1145,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                                           overflow: TextOverflow
                                                               .ellipsis,
                                                           color: Colors.red,
-                                                          fontSize: 15,
-                                                          fontWeight:
-                                                              FontWeight.w300,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                        if (wallets.isNotEmpty)
-                                          if (gasTxsLeft < 0)
-                                            Container(
-                                              constraints: const BoxConstraints(
-                                                  maxWidth: kIsWeb
-                                                      ? 400
-                                                      : double.infinity),
-                                              decoration: BoxDecoration(
-                                                border: Border.all(
-                                                    color: Colors.red,
-                                                    width: 1.0),
-                                                borderRadius:
-                                                    BorderRadius.circular(20),
-                                              ),
-                                              padding: const EdgeInsets.all(15),
-                                              child: Row(
-                                                children: [
-                                                  const Icon(
-                                                    CupertinoIcons
-                                                        .exclamationmark_circle,
-                                                    color: Colors.red,
-                                                  ),
-                                                  const SizedBox(
-                                                    width: 5,
-                                                  ),
-                                                  Expanded(
-                                                    child: Text(
-                                                      "You ran out of gas. Buy more coins",
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                      maxLines: 5,
-                                                      textAlign:
-                                                          TextAlign.start,
-                                                      style: GoogleFonts
-                                                          .montserrat(
-                                                        textStyle:
-                                                            const TextStyle(
-                                                          overflow: TextOverflow
-                                                              .ellipsis,
-                                                          color:
-                                                              lightPrimaryColor,
                                                           fontSize: 15,
                                                           fontWeight:
                                                               FontWeight.w300,
@@ -2227,266 +2168,268 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 ),
                                               ),
                                               const SizedBox(height: 20),
-                                              for (QueryDocumentSnapshot invoice
-                                                  in invoices!.docs)
-                                                CupertinoButton(
-                                                  onPressed: () async {
-                                                    setState(() {
-                                                      loading = true;
-                                                    });
-                                                    Navigator.push(
-                                                      context,
-                                                      SlideRightRoute(
-                                                        page: InvoiceScreen(
-                                                          invoiceId: invoice.id,
-                                                          web3client:
-                                                              web3client!,
-                                                          network: appData!.get(
-                                                                  'AVAILABLE_ETHER_NETWORKS')[
-                                                              invoice.get(
-                                                                  'networkId')],
-                                                        ),
-                                                      ),
-                                                    );
-                                                    setState(() {
-                                                      loading = false;
-                                                    });
-                                                  },
-                                                  padding: EdgeInsets.zero,
-                                                  child: Container(
-                                                    decoration: BoxDecoration(
-                                                      border: Border.all(
-                                                          color:
-                                                              lightPrimaryColor,
-                                                          width: 1.0),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              20),
-                                                    ),
-                                                    margin:
-                                                        const EdgeInsets.only(
-                                                            bottom: 30),
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            20),
-                                                    child: Row(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .spaceBetween,
-                                                      children: [
-                                                        // Status + Date
-                                                        Container(
-                                                          width:
-                                                              size.width * 0.2,
-                                                          child: Column(
-                                                            mainAxisAlignment:
-                                                                MainAxisAlignment
-                                                                    .center,
-                                                            children: [
-                                                              Text(
-                                                                invoiceStatuses[
-                                                                    invoice.get(
-                                                                        'status')]!,
-                                                                overflow:
-                                                                    TextOverflow
-                                                                        .ellipsis,
-                                                                textAlign:
-                                                                    TextAlign
-                                                                        .start,
-                                                                style: GoogleFonts
-                                                                    .montserrat(
-                                                                  textStyle:
-                                                                      const TextStyle(
-                                                                    color:
-                                                                        lightPrimaryColor,
-                                                                    fontSize:
-                                                                        35,
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .w600,
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                              const SizedBox(
-                                                                height: 5,
-                                                              ),
-                                                              Text(
-                                                                DateFormat
-                                                                        .MMMd()
-                                                                    .format(DateTime.fromMillisecondsSinceEpoch(invoice
-                                                                        .get(
-                                                                            'dateCreated')
-                                                                        .millisecondsSinceEpoch)),
-                                                                overflow:
-                                                                    TextOverflow
-                                                                        .ellipsis,
-                                                                textAlign:
-                                                                    TextAlign
-                                                                        .start,
-                                                                style: GoogleFonts
-                                                                    .montserrat(
-                                                                  textStyle:
-                                                                      const TextStyle(
-                                                                    color:
-                                                                        lightPrimaryColor,
-                                                                    fontSize:
-                                                                        15,
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .w600,
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                            ],
+                                              if (invoices != null)
+                                                for (QueryDocumentSnapshot invoice
+                                                    in invoices!.docs)
+                                                  CupertinoButton(
+                                                    onPressed: () async {
+                                                      setState(() {
+                                                        loading = true;
+                                                      });
+                                                      Navigator.push(
+                                                        context,
+                                                        SlideRightRoute(
+                                                          page: InvoiceScreen(
+                                                            invoiceId:
+                                                                invoice.id,
+                                                            web3client:
+                                                                web3client!,
+                                                            network: appData!.get(
+                                                                    'AVAILABLE_ETHER_NETWORKS')[
+                                                                invoice.get(
+                                                                    'networkId')],
                                                           ),
                                                         ),
-                                                        Container(
-                                                          width:
-                                                              size.width * 0.2,
-                                                          child: Column(
-                                                            mainAxisAlignment:
-                                                                MainAxisAlignment
-                                                                    .center,
-                                                            crossAxisAlignment:
-                                                                CrossAxisAlignment
-                                                                    .start,
-                                                            children: [
-                                                              Text(
-                                                                "#${invoice.get('id')}",
-                                                                overflow:
-                                                                    TextOverflow
-                                                                        .ellipsis,
-                                                                textAlign:
-                                                                    TextAlign
-                                                                        .start,
-                                                                style: GoogleFonts
-                                                                    .montserrat(
-                                                                  textStyle:
-                                                                      const TextStyle(
-                                                                    color:
-                                                                        lightPrimaryColor,
-                                                                    fontSize:
-                                                                        25,
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .w700,
+                                                      );
+                                                      setState(() {
+                                                        loading = false;
+                                                      });
+                                                    },
+                                                    padding: EdgeInsets.zero,
+                                                    child: Container(
+                                                      decoration: BoxDecoration(
+                                                        border: Border.all(
+                                                            color:
+                                                                lightPrimaryColor,
+                                                            width: 1.0),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(20),
+                                                      ),
+                                                      margin:
+                                                          const EdgeInsets.only(
+                                                              bottom: 30),
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              20),
+                                                      child: Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .spaceBetween,
+                                                        children: [
+                                                          // Status + Date
+                                                          Container(
+                                                            width: size.width *
+                                                                0.2,
+                                                            child: Column(
+                                                              mainAxisAlignment:
+                                                                  MainAxisAlignment
+                                                                      .center,
+                                                              children: [
+                                                                Text(
+                                                                  invoiceStatuses[
+                                                                      invoice.get(
+                                                                          'status')]!,
+                                                                  overflow:
+                                                                      TextOverflow
+                                                                          .ellipsis,
+                                                                  textAlign:
+                                                                      TextAlign
+                                                                          .start,
+                                                                  style: GoogleFonts
+                                                                      .montserrat(
+                                                                    textStyle:
+                                                                        const TextStyle(
+                                                                      color:
+                                                                          lightPrimaryColor,
+                                                                      fontSize:
+                                                                          35,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w600,
+                                                                    ),
                                                                   ),
                                                                 ),
-                                                              ),
-                                                              const SizedBox(
-                                                                height: 10,
-                                                              ),
-                                                              Row(
-                                                                mainAxisAlignment:
-                                                                    MainAxisAlignment
-                                                                        .spaceBetween,
-                                                                children: [
-                                                                  Image.network(
-                                                                    appData!.get(
-                                                                            'AVAILABLE_ETHER_NETWORKS')[
-                                                                        invoice.get(
-                                                                            'networkId')]['image'],
-                                                                    width: 20,
+                                                                const SizedBox(
+                                                                  height: 5,
+                                                                ),
+                                                                Text(
+                                                                  DateFormat
+                                                                          .MMMd()
+                                                                      .format(DateTime.fromMillisecondsSinceEpoch(invoice
+                                                                          .get(
+                                                                              'dateCreated')
+                                                                          .millisecondsSinceEpoch)),
+                                                                  overflow:
+                                                                      TextOverflow
+                                                                          .ellipsis,
+                                                                  textAlign:
+                                                                      TextAlign
+                                                                          .start,
+                                                                  style: GoogleFonts
+                                                                      .montserrat(
+                                                                    textStyle:
+                                                                        const TextStyle(
+                                                                      color:
+                                                                          lightPrimaryColor,
+                                                                      fontSize:
+                                                                          15,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w600,
+                                                                    ),
                                                                   ),
-                                                                  const SizedBox(
-                                                                    width: 5,
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                          Container(
+                                                            width: size.width *
+                                                                0.2,
+                                                            child: Column(
+                                                              mainAxisAlignment:
+                                                                  MainAxisAlignment
+                                                                      .center,
+                                                              crossAxisAlignment:
+                                                                  CrossAxisAlignment
+                                                                      .start,
+                                                              children: [
+                                                                Text(
+                                                                  "#${invoice.get('id')}",
+                                                                  overflow:
+                                                                      TextOverflow
+                                                                          .ellipsis,
+                                                                  textAlign:
+                                                                      TextAlign
+                                                                          .start,
+                                                                  style: GoogleFonts
+                                                                      .montserrat(
+                                                                    textStyle:
+                                                                        const TextStyle(
+                                                                      color:
+                                                                          lightPrimaryColor,
+                                                                      fontSize:
+                                                                          25,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w700,
+                                                                    ),
                                                                   ),
-                                                                  Expanded(
-                                                                    child: Text(
+                                                                ),
+                                                                const SizedBox(
+                                                                  height: 10,
+                                                                ),
+                                                                Row(
+                                                                  mainAxisAlignment:
+                                                                      MainAxisAlignment
+                                                                          .spaceBetween,
+                                                                  children: [
+                                                                    Image
+                                                                        .network(
                                                                       appData!
                                                                           .get(
                                                                               'AVAILABLE_ETHER_NETWORKS')[invoice
                                                                           .get(
-                                                                              'networkId')]['name'],
-                                                                      overflow:
-                                                                          TextOverflow
-                                                                              .ellipsis,
-                                                                      maxLines:
-                                                                          3,
-                                                                      textAlign:
-                                                                          TextAlign
-                                                                              .start,
-                                                                      style: GoogleFonts
-                                                                          .montserrat(
-                                                                        textStyle:
-                                                                            const TextStyle(
-                                                                          color:
-                                                                              lightPrimaryColor,
-                                                                          fontSize:
-                                                                              20,
-                                                                          fontWeight:
-                                                                              FontWeight.w700,
+                                                                              'networkId')]['image'],
+                                                                      width: 20,
+                                                                    ),
+                                                                    const SizedBox(
+                                                                      width: 5,
+                                                                    ),
+                                                                    Expanded(
+                                                                      child:
+                                                                          Text(
+                                                                        appData!
+                                                                            .get(
+                                                                                'AVAILABLE_ETHER_NETWORKS')[invoice
+                                                                            .get('networkId')]['name'],
+                                                                        overflow:
+                                                                            TextOverflow.ellipsis,
+                                                                        maxLines:
+                                                                            3,
+                                                                        textAlign:
+                                                                            TextAlign.start,
+                                                                        style: GoogleFonts
+                                                                            .montserrat(
+                                                                          textStyle:
+                                                                              const TextStyle(
+                                                                            color:
+                                                                                lightPrimaryColor,
+                                                                            fontSize:
+                                                                                20,
+                                                                            fontWeight:
+                                                                                FontWeight.w700,
+                                                                          ),
                                                                         ),
                                                                       ),
                                                                     ),
-                                                                  ),
-                                                                ],
-                                                              ),
-                                                            ],
+                                                                  ],
+                                                                ),
+                                                              ],
+                                                            ),
                                                           ),
-                                                        ),
-                                                        Container(
-                                                          width:
-                                                              size.width * 0.2,
-                                                          child: Column(
-                                                            mainAxisAlignment:
-                                                                MainAxisAlignment
-                                                                    .center,
-                                                            children: [
-                                                              Text(
-                                                                invoice.get(
-                                                                    'amount'),
-                                                                maxLines: 2,
-                                                                overflow:
-                                                                    TextOverflow
-                                                                        .ellipsis,
-                                                                textAlign:
-                                                                    TextAlign
-                                                                        .start,
-                                                                style: GoogleFonts
-                                                                    .montserrat(
-                                                                  textStyle:
-                                                                      const TextStyle(
-                                                                    color:
-                                                                        lightPrimaryColor,
-                                                                    fontSize:
-                                                                        25,
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .w700,
+                                                          Container(
+                                                            width: size.width *
+                                                                0.2,
+                                                            child: Column(
+                                                              mainAxisAlignment:
+                                                                  MainAxisAlignment
+                                                                      .center,
+                                                              children: [
+                                                                Text(
+                                                                  invoice.get(
+                                                                      'amount'),
+                                                                  maxLines: 2,
+                                                                  overflow:
+                                                                      TextOverflow
+                                                                          .ellipsis,
+                                                                  textAlign:
+                                                                      TextAlign
+                                                                          .start,
+                                                                  style: GoogleFonts
+                                                                      .montserrat(
+                                                                    textStyle:
+                                                                        const TextStyle(
+                                                                      color:
+                                                                          lightPrimaryColor,
+                                                                      fontSize:
+                                                                          25,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w700,
+                                                                    ),
                                                                   ),
                                                                 ),
-                                                              ),
-                                                              Text(
-                                                                invoice.get(
-                                                                    'coinSymbol'),
-                                                                overflow:
-                                                                    TextOverflow
-                                                                        .ellipsis,
-                                                                textAlign:
-                                                                    TextAlign
-                                                                        .start,
-                                                                style: GoogleFonts
-                                                                    .montserrat(
-                                                                  textStyle:
-                                                                      const TextStyle(
-                                                                    color:
-                                                                        lightPrimaryColor,
-                                                                    fontSize:
-                                                                        20,
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .w400,
+                                                                Text(
+                                                                  invoice.get(
+                                                                      'coinSymbol'),
+                                                                  overflow:
+                                                                      TextOverflow
+                                                                          .ellipsis,
+                                                                  textAlign:
+                                                                      TextAlign
+                                                                          .start,
+                                                                  style: GoogleFonts
+                                                                      .montserrat(
+                                                                    textStyle:
+                                                                        const TextStyle(
+                                                                      color:
+                                                                          lightPrimaryColor,
+                                                                      fontSize:
+                                                                          20,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w400,
+                                                                    ),
                                                                   ),
                                                                 ),
-                                                              ),
-                                                            ],
+                                                              ],
+                                                            ),
                                                           ),
-                                                        ),
-                                                      ],
+                                                        ],
+                                                      ),
                                                     ),
                                                   ),
-                                                ),
                                             ],
                                           )
                                         : Container(),

@@ -760,7 +760,7 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                                               const SizedBox(
                                                 height: 10,
                                               ),
-                                              // Estimate gas
+                                              // Estimate gas amount
                                               Container(
                                                 child: Row(
                                                   mainAxisAlignment:
@@ -770,7 +770,7 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                                                     Container(
                                                       width: size.width * 0.2,
                                                       child: Text(
-                                                        "Estimate gas price for this transaction",
+                                                        "Estimate gas amount",
                                                         overflow: TextOverflow
                                                             .ellipsis,
                                                         maxLines: 5,
@@ -798,7 +798,7 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                                                     Container(
                                                       width: size.width * 0.2,
                                                       child: Text(
-                                                        "${NumberFormat.compact().format(EtherAmount.fromUnitAndValue(EtherUnit.gwei, estimateGas).getValueInUnit(EtherUnit.gwei))} GWEI",
+                                                        "$estimateGas",
                                                         overflow: TextOverflow
                                                             .ellipsis,
                                                         maxLines: 3,
@@ -875,7 +875,7 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                                                   Container(
                                                     width: size.width * 0.2,
                                                     child: Text(
-                                                      "Total",
+                                                      "Total gas price",
                                                       overflow:
                                                           TextOverflow.ellipsis,
                                                       maxLines: 3,
@@ -902,7 +902,7 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                                                   Container(
                                                     width: size.width * 0.2,
                                                     child: Text(
-                                                      "${etherGas!.getValueInUnit(EtherUnit.gwei)} GWEI",
+                                                      "${(etherGas!.getValueInUnit(EtherUnit.gwei) * estimateGas!.toDouble()).toStringAsFixed(1)} GWEI",
                                                       overflow:
                                                           TextOverflow.ellipsis,
                                                       maxLines: 3,
