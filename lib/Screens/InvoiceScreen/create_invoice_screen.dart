@@ -72,11 +72,11 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
 
     // get app data
     appData = await firestore.FirebaseFirestore.instance
-        .collection('wallet_app_data')
+        .collection('app_data')
         .doc('data')
         .get();
     appDataApi = await firestore.FirebaseFirestore.instance
-        .collection('wallet_app_data')
+        .collection('app_data')
         .doc('api')
         .get();
 
@@ -98,7 +98,9 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
 
   @override
   void dispose() {
-    invoiceStreamSubscriptions!.cancel();
+    if (invoiceStreamSubscriptions != null) {
+      invoiceStreamSubscriptions!.cancel();
+    }
     timer?.cancel();
     super.dispose();
   }

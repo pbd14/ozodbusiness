@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:ozodbusiness/Screens/CashRegisterScreen/cash_register_screen.dart';
 import 'package:ozodbusiness/Screens/HomeScreen/home_screen.dart';
 import 'package:ozodbusiness/Screens/WelcomeScreen/welcome_screen.dart';
 import 'package:ozodbusiness/Widgets/loading_screen.dart';
@@ -34,7 +35,7 @@ class _MainScreenState extends State<MainScreen> {
   List<Widget> _buildScreens() {
     return [
       HomeScreen(),
-      WelcomeScreen(),
+      CashRegisterScreen(),
       // LoyaltyScreen(),
       // WalletScreen(),
     ];
@@ -72,8 +73,8 @@ class _MainScreenState extends State<MainScreen> {
         ),
       ),
       PersistentBottomNavBarItem(
-        icon: const Icon(CupertinoIcons.suit_diamond_fill),
-        title: ("Ethereum"),
+        icon: const Icon(CupertinoIcons.cube_box),
+        title: ("Cash Register"),
         activeColorPrimary: lightPrimaryColor,
         activeColorSecondary: darkPrimaryColor,
         inactiveColorPrimary: lightPrimaryColor,

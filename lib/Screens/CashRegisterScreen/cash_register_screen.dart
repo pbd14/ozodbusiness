@@ -27,15 +27,16 @@ import 'package:web3dart/web3dart.dart';
 import 'package:http/http.dart';
 
 // ignore: must_be_immutable
-class HomeScreen extends StatefulWidget {
+class CashRegisterScreen extends StatefulWidget {
   String error;
-  HomeScreen({Key? key, this.error = 'Something Went Wrong'}) : super(key: key);
+  CashRegisterScreen({Key? key, this.error = 'Something Went Wrong'})
+      : super(key: key);
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<CashRegisterScreen> createState() => _CashRegisterScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _CashRegisterScreenState extends State<CashRegisterScreen> {
   bool loading = true;
 
   final ScrollController _scrollController = ScrollController();
@@ -891,13 +892,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                 children: [
                                   Container(
                                     constraints: BoxConstraints(
-                                        maxWidth: size.width * 0.2),
+                                        maxWidth: size.width * 0.5),
                                     child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          'Home',
+                                          'Cash Registers',
                                           overflow: TextOverflow.ellipsis,
                                           style: GoogleFonts.montserrat(
                                             textStyle: const TextStyle(
@@ -1048,59 +1049,54 @@ class _HomeScreenState extends State<HomeScreen> {
                                                       .get(
                                                           'AVAILABLE_OZOD_NETWORKS')
                                                       .keys)
-                                                    if (appData!.get(
-                                                            'AVAILABLE_OZOD_NETWORKS')[
-                                                        networkId]['active'])
-                                                      DropdownMenuItem<String>(
-                                                        value: networkId,
-                                                        child: Container(
-                                                          margin:
-                                                              const EdgeInsets
-                                                                      .symmetric(
-                                                                  vertical: 10),
-                                                          child: Row(
-                                                            mainAxisAlignment:
-                                                                MainAxisAlignment
-                                                                    .start,
-                                                            children: [
-                                                              Image.network(
-                                                                appData!.get(
-                                                                            'AVAILABLE_OZOD_NETWORKS')[
-                                                                        networkId]
-                                                                    ['image'],
-                                                                width: 30,
-                                                              ),
-                                                              const SizedBox(
-                                                                width: 5,
-                                                              ),
-                                                              // Image + symbol
-                                                              Text(
-                                                                appData!.get(
-                                                                            'AVAILABLE_OZOD_NETWORKS')[
-                                                                        networkId]
-                                                                    ['name'],
-                                                                overflow:
-                                                                    TextOverflow
-                                                                        .ellipsis,
-                                                                maxLines: 2,
-                                                                style: GoogleFonts
-                                                                    .montserrat(
-                                                                  textStyle:
-                                                                      const TextStyle(
-                                                                    color:
-                                                                        lightPrimaryColor,
-                                                                    fontSize:
-                                                                        20,
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .w700,
-                                                                  ),
+                                                    DropdownMenuItem<String>(
+                                                      value: networkId,
+                                                      child: Container(
+                                                        margin: const EdgeInsets
+                                                                .symmetric(
+                                                            vertical: 10),
+                                                        child: Row(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            Image.network(
+                                                              appData!.get(
+                                                                          'AVAILABLE_OZOD_NETWORKS')[
+                                                                      networkId]
+                                                                  ['image'],
+                                                              width: 30,
+                                                            ),
+                                                            const SizedBox(
+                                                              width: 5,
+                                                            ),
+                                                            // Image + symbol
+                                                            Text(
+                                                              appData!.get(
+                                                                          'AVAILABLE_OZOD_NETWORKS')[
+                                                                      networkId]
+                                                                  ['name'],
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
+                                                              maxLines: 2,
+                                                              style: GoogleFonts
+                                                                  .montserrat(
+                                                                textStyle:
+                                                                    const TextStyle(
+                                                                  color:
+                                                                      lightPrimaryColor,
+                                                                  fontSize: 20,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w700,
                                                                 ),
                                                               ),
-                                                            ],
-                                                          ),
+                                                            ),
+                                                          ],
                                                         ),
                                                       ),
+                                                    ),
                                                 ],
                                               ),
                                             ),
@@ -1164,7 +1160,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                   ),
                                   Container(
-                                    width: size.width * 0.7,
+                                    width: size.width * 0.2,
                                     child: Column(
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
@@ -1201,516 +1197,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                               ),
                                               child: Image.network(
                                                 company!.get('logo'),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(
-                                          height: 70,
-                                        ),
-                                        // Buttons
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceEvenly,
-                                          children: [
-                                            // Invoice button
-                                            RawMaterialButton(
-                                              constraints: const BoxConstraints(
-                                                  minWidth: 150,
-                                                  minHeight: 100),
-                                              fillColor: lightPrimaryColor,
-                                              shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          20)),
-                                              onPressed: () async {
-                                                setState(() {
-                                                  loading = true;
-                                                });
-
-                                                Navigator.push(
-                                                  context,
-                                                  SlideRightRoute(
-                                                    page: CreateInvoiceScreen(
-                                                      web3client: web3client!,
-                                                      wallet: wallet!,
-                                                      networkId:
-                                                          selectedNetworkId,
-                                                      companyId: company!.id,
-                                                      coin: {
-                                                        'id': uzsoFirebase!.id,
-                                                        'contract':
-                                                            uzsoContract,
-                                                        'symbol': uzsoFirebase!
-                                                            .get('symbol'),
-                                                      },
-                                                    ),
-                                                  ),
-                                                );
-
-                                                setState(() {
-                                                  loading = false;
-                                                });
-                                              },
-                                              child: Column(
-                                                children: [
-                                                  const Icon(
-                                                    CupertinoIcons.arrow_down,
-                                                    color: darkPrimaryColor,
-                                                  ),
-                                                  Text(
-                                                    "Invoice",
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    textAlign: TextAlign.start,
-                                                    style:
-                                                        GoogleFonts.montserrat(
-                                                      textStyle:
-                                                          const TextStyle(
-                                                        color: darkPrimaryColor,
-                                                        fontSize: 20,
-                                                        fontWeight:
-                                                            FontWeight.w700,
-                                                      ),
-                                                    ),
-                                                  )
-                                                ],
-                                              ),
-                                            ),
-
-                                            // Send button
-                                            RawMaterialButton(
-                                              constraints: const BoxConstraints(
-                                                  minWidth: 150,
-                                                  minHeight: 100),
-                                              shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          20)),
-                                              fillColor: lightPrimaryColor,
-                                              onPressed: () async {
-                                                setState(() {
-                                                  loading = true;
-                                                });
-
-                                                Navigator.push(
-                                                  context,
-                                                  SlideRightRoute(
-                                                    page: SendOzodScreen(
-                                                      web3client: web3client!,
-                                                      wallet: wallet!,
-                                                      networkId:
-                                                          selectedNetworkId,
-                                                      coin: {
-                                                        'id': uzsoFirebase!.id,
-                                                        'contract':
-                                                            uzsoContract,
-                                                        'symbol': uzsoFirebase!
-                                                            .get('symbol'),
-                                                      },
-                                                    ),
-                                                  ),
-                                                );
-
-                                                setState(() {
-                                                  loading = false;
-                                                });
-                                              },
-                                              child: Column(
-                                                children: [
-                                                  const Icon(
-                                                    CupertinoIcons.arrow_up,
-                                                    color: darkPrimaryColor,
-                                                  ),
-                                                  Text(
-                                                    "Send",
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    textAlign: TextAlign.start,
-                                                    style:
-                                                        GoogleFonts.montserrat(
-                                                      textStyle:
-                                                          const TextStyle(
-                                                        color: darkPrimaryColor,
-                                                        fontSize: 20,
-                                                        fontWeight:
-                                                            FontWeight.w700,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-
-                                            // Buy button
-                                            RawMaterialButton(
-                                              constraints: const BoxConstraints(
-                                                  minWidth: 150,
-                                                  minHeight: 100),
-                                              fillColor: lightPrimaryColor,
-                                              shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          20)),
-                                              onPressed: () {
-                                                if (kIsWeb) {
-                                                  showNotification(
-                                                      'Coming soon',
-                                                      'Not supported for web',
-                                                      Colors.orange);
-                                                } else {
-                                                  showDialog(
-                                                      barrierDismissible: false,
-                                                      context: context,
-                                                      builder: (BuildContext
-                                                          context) {
-                                                        return StatefulBuilder(
-                                                          builder: (context,
-                                                              StateSetter
-                                                                  setState) {
-                                                            return AlertDialog(
-                                                              backgroundColor:
-                                                                  lightPrimaryColor,
-                                                              shape:
-                                                                  RoundedRectangleBorder(
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            20.0),
-                                                              ),
-                                                              title: const Text(
-                                                                'Method',
-                                                                style: TextStyle(
-                                                                    color:
-                                                                        darkPrimaryColor),
-                                                              ),
-                                                              content:
-                                                                  SingleChildScrollView(
-                                                                child:
-                                                                    Container(
-                                                                  margin:
-                                                                      const EdgeInsets
-                                                                          .all(10),
-                                                                  child: Column(
-                                                                    children: [
-                                                                      // PayMe
-                                                                      Row(
-                                                                        mainAxisAlignment:
-                                                                            MainAxisAlignment.spaceEvenly,
-                                                                        children: [
-                                                                          Image
-                                                                              .asset(
-                                                                            "assets/images/payme.png",
-                                                                            width:
-                                                                                80,
-                                                                          ),
-                                                                          const SizedBox(
-                                                                            width:
-                                                                                10,
-                                                                          ),
-                                                                          Expanded(
-                                                                            child:
-                                                                                RoundedButton(
-                                                                              pw: 250,
-                                                                              ph: 45,
-                                                                              text: 'PayMe',
-                                                                              press: () {
-                                                                                // Navigator.push(
-                                                                                //   context,
-                                                                                //   SlideRightRoute(
-                                                                                //     page: BuyOzodPaymeScreen(
-                                                                                //       walletIndex: selectedWalletIndex,
-                                                                                //       web3client: web3client!,
-                                                                                //     ),
-                                                                                //   ),
-                                                                                // );
-                                                                              },
-                                                                              color: secondaryColor,
-                                                                              textColor: darkPrimaryColor,
-                                                                            ),
-                                                                          ),
-                                                                        ],
-                                                                      ),
-                                                                      const SizedBox(
-                                                                        height:
-                                                                            20,
-                                                                      ),
-                                                                      // Octo
-                                                                      Row(
-                                                                        mainAxisAlignment:
-                                                                            MainAxisAlignment.spaceEvenly,
-                                                                        children: [
-                                                                          Image
-                                                                              .asset(
-                                                                            "assets/images/octo.png",
-                                                                            width:
-                                                                                80,
-                                                                          ),
-                                                                          const SizedBox(
-                                                                            width:
-                                                                                10,
-                                                                          ),
-                                                                          Expanded(
-                                                                            child:
-                                                                                RoundedButton(
-                                                                              pw: 250,
-                                                                              ph: 45,
-                                                                              text: 'Octo',
-                                                                              press: () {
-                                                                                // Navigator.push(
-                                                                                //   context,
-                                                                                //   SlideRightRoute(
-                                                                                //     page: BuyOzodOctoScreen(
-                                                                                //       walletIndex: selectedWalletIndex,
-                                                                                //       web3client: web3client!,
-                                                                                //       selectedNetworkId: selectedNetworkId,
-                                                                                //       contract: uzsoContract!,
-                                                                                //     ),
-                                                                                //   ),
-                                                                                // );
-                                                                              },
-                                                                              color: Colors.blue,
-                                                                              textColor: whiteColor,
-                                                                            ),
-                                                                          ),
-                                                                        ],
-                                                                      ),
-                                                                      const SizedBox(
-                                                                        height:
-                                                                            20,
-                                                                      ),
-                                                                    ],
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                              actions: <Widget>[
-                                                                TextButton(
-                                                                  onPressed: () =>
-                                                                      Navigator.of(
-                                                                              context)
-                                                                          .pop(
-                                                                              false),
-                                                                  child:
-                                                                      const Text(
-                                                                    'Ok',
-                                                                    style: TextStyle(
-                                                                        color:
-                                                                            darkPrimaryColor),
-                                                                  ),
-                                                                ),
-                                                              ],
-                                                            );
-                                                          },
-                                                        );
-                                                      });
-                                                }
-                                              },
-                                              child: Column(
-                                                children: [
-                                                  const Icon(
-                                                    CupertinoIcons.money_dollar,
-                                                    color: darkPrimaryColor,
-                                                  ),
-                                                  Text(
-                                                    "Buy",
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    textAlign: TextAlign.start,
-                                                    style:
-                                                        GoogleFonts.montserrat(
-                                                      textStyle:
-                                                          const TextStyle(
-                                                        color: darkPrimaryColor,
-                                                        fontSize: 20,
-                                                        fontWeight:
-                                                            FontWeight.w700,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-
-                                            // Sell button
-                                            RawMaterialButton(
-                                              constraints: const BoxConstraints(
-                                                  minWidth: 150,
-                                                  minHeight: 100),
-                                              fillColor: lightPrimaryColor,
-                                              shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          20)),
-                                              onPressed: () {
-                                                //   showDialog(
-                                                //       barrierDismissible: false,
-                                                //       context: context,
-                                                //       builder:
-                                                //           (BuildContext context) {
-                                                //         return StatefulBuilder(
-                                                //           builder: (context,
-                                                //               StateSetter setState) {
-                                                //             return AlertDialog(
-                                                //               backgroundColor:
-                                                //                   lightPrimaryColor,
-                                                //               shape:
-                                                //                   RoundedRectangleBorder(
-                                                //                 borderRadius:
-                                                //                     BorderRadius
-                                                //                         .circular(
-                                                //                             20.0),
-                                                //               ),
-                                                //               title: const Text(
-                                                //                 'Method',
-                                                //                 style: TextStyle(
-                                                //                     color:
-                                                //                         darkPrimaryColor),
-                                                //               ),
-                                                //               content:
-                                                //                   SingleChildScrollView(
-                                                //                 child: Container(
-                                                //                   margin:
-                                                //                       EdgeInsets.all(
-                                                //                           10),
-                                                //                   child: Column(
-                                                //                     children: [
-                                                //                       // PayMe
-                                                //                       Row(
-                                                //                         mainAxisAlignment:
-                                                //                             MainAxisAlignment
-                                                //                                 .spaceEvenly,
-                                                //                         children: [
-                                                //                           Image.asset(
-                                                //                             "assets/images/payme.png",
-                                                //                             width: 80,
-                                                //                           ),
-                                                //                           SizedBox(
-                                                //                             width: 10,
-                                                //                           ),
-                                                //                           Expanded(
-                                                //                             child:
-                                                //                                 RoundedButton(
-                                                //                               pw: 250,
-                                                //                               ph: 45,
-                                                //                               text:
-                                                //                                   'PayMe',
-                                                //                               press:
-                                                //                                   () {
-                                                //                                 Navigator
-                                                //                                     .push(
-                                                //                                   context,
-                                                //                                   SlideRightRoute(
-                                                //                                     page: BuyOzodPaymeScreen(
-                                                //                                       walletIndex: selectedWalletIndex,
-                                                //                                       web3client: web3client,
-                                                //                                     ),
-                                                //                                   ),
-                                                //                                 );
-                                                //                               },
-                                                //                               color:
-                                                //                                   secondaryColor,
-                                                //                               textColor:
-                                                //                                   darkPrimaryColor,
-                                                //                             ),
-                                                //                           ),
-                                                //                         ],
-                                                //                       ),
-                                                //                       const SizedBox(
-                                                //                         height: 20,
-                                                //                       ),
-                                                //                       // Octo
-                                                //                       Row(
-                                                //                         mainAxisAlignment:
-                                                //                             MainAxisAlignment
-                                                //                                 .spaceEvenly,
-                                                //                         children: [
-                                                //                           Image.asset(
-                                                //                             "assets/images/octo.png",
-                                                //                             width: 80,
-                                                //                           ),
-                                                //                           SizedBox(
-                                                //                             width: 10,
-                                                //                           ),
-                                                //                           Expanded(
-                                                //                             child:
-                                                //                                 RoundedButton(
-                                                //                               pw: 250,
-                                                //                               ph: 45,
-                                                //                               text:
-                                                //                                   'Octo',
-                                                //                               press:
-                                                //                                   () {
-                                                //                                 Navigator
-                                                //                                     .push(
-                                                //                                   context,
-                                                //                                   SlideRightRoute(
-                                                //                                     page: BuyOzodOctoScreen(
-                                                //                                       walletIndex: selectedWalletIndex,
-                                                //                                       web3client: web3client,
-                                                //                                       selectedNetworkId: selectedNetworkId,
-                                                //                                       contract: uzsoContract!,
-                                                //                                     ),
-                                                //                                   ),
-                                                //                                 );
-                                                //                               },
-                                                //                               color: Colors
-                                                //                                   .blue,
-                                                //                               textColor:
-                                                //                                   whiteColor,
-                                                //                             ),
-                                                //                           ),
-                                                //                         ],
-                                                //                       ),
-                                                //                       const SizedBox(
-                                                //                         height: 20,
-                                                //                       ),
-                                                //                     ],
-                                                //                   ),
-                                                //                 ),
-                                                //               ),
-                                                //               actions: <Widget>[
-                                                //                 TextButton(
-                                                //                   onPressed: () =>
-                                                //                       Navigator.of(
-                                                //                               context)
-                                                //                           .pop(false),
-                                                //                   child: const Text(
-                                                //                     'Ok',
-                                                //                     style: TextStyle(
-                                                //                         color:
-                                                //                             darkPrimaryColor),
-                                                //                   ),
-                                                //                 ),
-                                                //               ],
-                                                //             );
-                                                //           },
-                                                //         );
-                                                //       });
-                                              },
-                                              child: Column(
-                                                children: [
-                                                  const Icon(
-                                                    CupertinoIcons
-                                                        .money_dollar_circle,
-                                                    color: darkPrimaryColor,
-                                                  ),
-                                                  Text(
-                                                    "Sell",
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    textAlign: TextAlign.start,
-                                                    style:
-                                                        GoogleFonts.montserrat(
-                                                      textStyle:
-                                                          const TextStyle(
-                                                        color: darkPrimaryColor,
-                                                        fontSize: 20,
-                                                        fontWeight:
-                                                            FontWeight.w700,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
                                               ),
                                             ),
                                           ],
@@ -2161,18 +1647,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
                                             children: [
-                                              Text(
-                                                'Invoices',
-                                                overflow: TextOverflow.ellipsis,
-                                                style: GoogleFonts.montserrat(
-                                                  textStyle: const TextStyle(
-                                                    color: lightPrimaryColor,
-                                                    fontSize: 60,
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
-                                                ),
-                                              ),
-                                              const SizedBox(height: 20),
                                               if (invoices != null)
                                                 for (QueryDocumentSnapshot invoice
                                                     in invoices!.docs)
@@ -2435,8 +1909,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                       ),
                                                     ),
                                                   ),
-                                              if (invoices == null ||
-                                                  invoices!.docs.isEmpty)
+                                              if (invoices == null || invoices!.docs.isEmpty)
                                                 Column(
                                                   crossAxisAlignment:
                                                       CrossAxisAlignment.center,
