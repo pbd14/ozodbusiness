@@ -11,6 +11,17 @@ import 'package:ozodbusiness/Services/languages/locale_constant.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:ozodbusiness/constants.dart';
 
+// ozodbusiness
+// Web ReCaptcha site key: 6Lfdf7EkAAAAAB8rGvvUt4NI_QLqLicyEEzJDvB2
+// Web ReCaptcha private key: 6Lfdf7EkAAAAAFegzHyW-2-AcLQrhBNWelMXjbXb
+
+// ozod-business
+// Web ReCaptcha site key: 6LdP3c4kAAAAAPEF-Vu0Sdn2IqzEx6bKv136SU8f
+// Web ReCaptcha private key: 6LdP3c4kAAAAAPnk1aLsCecHMMCBNiLEdFVa2o8x
+
+
+// Firebase web: firebase deploy --only hosting:ozodbusiness
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // FirebaseFunctions functions = FirebaseFunctions.instance;
@@ -19,18 +30,20 @@ Future<void> main() async {
       // name: 'Ozod Mobile Web',
       // options: DefaultFirebaseOptions.currentPlatform,
       options: const FirebaseOptions(
-        apiKey: 'AIzaSyCDoHs_7O-lZ2PCXW30XBrNkw2IICCsay4',
-        appId: '1:631128095988:web:5b8cecb0e462dbea51b2a1',
-        messagingSenderId: '631128095988',
-        projectId: 'ozod-loyalty',
-      ),
+          apiKey: "AIzaSyCAJV40XWhTSjHECwJ-FvyP6tvEPcAOlS8",
+          authDomain: "ozod-finance.firebaseapp.com",
+          projectId: "ozod-finance",
+          storageBucket: "ozod-finance.appspot.com",
+          messagingSenderId: "31089423786",
+          appId: "1:31089423786:web:c79da970454780b2fd27d3",
+          measurementId: "G-K7BN6256VK"),
     );
   } else {
     await Firebase.initializeApp();
   }
 
   await FirebaseAppCheck.instance.activate(
-    webRecaptchaSiteKey: 'recaptcha-v3-site-key',
+    webRecaptchaSiteKey: '6LdP3c4kAAAAAPEF-Vu0Sdn2IqzEx6bKv136SU8f',
     // Default provider for Android is the Play Integrity provider. You can use the "AndroidProvider" enum to choose
     // your preferred provider. Choose from:
     // 1. debug provider

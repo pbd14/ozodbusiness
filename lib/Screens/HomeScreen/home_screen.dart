@@ -103,11 +103,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> getDataFromSP() async {
     sharedPreferences = await SharedPreferences.getInstance();
     String? valueSelectedWalletIndex =
-        await sharedPreferences!.getString("selectedWalletIndex");
+        sharedPreferences!.getString("selectedWalletIndex");
     String? valueselectedNetworkId =
-        await sharedPreferences!.getString("selectedNetworkId");
+        sharedPreferences!.getString("selectedNetworkId");
     String? valueselectedNetworkName =
-        await sharedPreferences!.getString("selectedNetworkName");
+        sharedPreferences!.getString("selectedNetworkName");
 
     if (mounted) {
       setState(() {
@@ -2432,7 +2432,28 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   ),
                                             ],
                                           )
-                                        : Container(),
+                                        : Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.center,
+                                            children: [
+                                              Image.asset(
+                                                "assets/images/iso1.png",
+                                                width: 300,
+                                              ),
+                                              const SizedBox(height: 20),
+                                              Text(
+                                                'No Invoices',
+                                                overflow: TextOverflow.ellipsis,
+                                                style: GoogleFonts.montserrat(
+                                                  textStyle: const TextStyle(
+                                                    color: lightPrimaryColor,
+                                                    fontSize: 60,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                   ],
                                 ),
                               )

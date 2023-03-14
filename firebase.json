@@ -1,0 +1,11 @@
+{
+  "hosting": {
+    "site": "ozod-business",
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ]
+  }
+}

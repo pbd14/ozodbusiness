@@ -153,27 +153,28 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         const SizedBox(
                           height: 20,
                         ),
-                        RoundedButton(
-                          pw: 250,
-                          ph: 45,
-                          text: 'Create account',
-                          press: () {
-                            setState(() {
-                              loading = true;
-                            });
-                            Navigator.push(
-                              context,
-                              SlideRightRoute(
-                                page: EmailSignUpScreen(),
-                              ),
-                            );
-                            setState(() {
-                              loading = false;
-                            });
-                          },
-                          color: darkPrimaryColor,
-                          textColor: lightPrimaryColor,
-                        ),
+                        // RoundedButton(
+                        //   pw: 250,
+                        //   ph: 45,
+                        //   text: 'Create account',
+                        //   press: () {
+                        //     setState(() {
+                        //       loading = true;
+                        //     });
+                        //     Navigator.push(
+                        //       context,
+                        //       SlideRightRoute(
+                        //         page: EmailSignUpScreen(),
+                        //       ),
+                        //     );
+                        //     setState(() {
+                        //       loading = false;
+                        //     });
+                        //   },
+                        //   color: darkPrimaryColor,
+                        //   textColor: lightPrimaryColor,
+                        // ),
+                      
                       ],
                     ),
                   ),
