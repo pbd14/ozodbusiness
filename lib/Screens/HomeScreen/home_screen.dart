@@ -217,7 +217,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // get balance
       final responseBalance = await httpClient.get(Uri.parse(
-          "${appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_url']}//api?module=account&action=tokenbalance&contractaddress=${uzsoFirebase!.id}&address=${wallet!.get('publicKey')}&tag=latest&apikey=${EncryptionService().dec(appDataApi!.get(appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_api']))}"));
+          "${appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_url']}/api?module=account&action=tokenbalance&contractaddress=${uzsoFirebase!.id}&address=${wallet!.get('publicKey')}&tag=latest&apikey=${EncryptionService().dec(appDataApi!.get(appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_api']))}"));
       dynamic jsonBodyBalance = jsonDecode(responseBalance.body);
       EtherAmount valueBalance = EtherAmount.fromUnitAndValue(
           EtherUnit.wei, jsonBodyBalance['result']);

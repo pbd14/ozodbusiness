@@ -82,7 +82,7 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
 
     etherGas = await widget.web3client.getGasPrice();
     estimateGas = await widget.web3client.estimateGas(
-      to: EthereumAddress.fromHex(widget.wallet.get('publicKey')),
+      // to: EthereumAddress.fromHex(widget.wallet.get('publicKey')),
     );
 
     setState(() {
